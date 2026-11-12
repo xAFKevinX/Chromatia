@@ -1,0 +1,23 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "xAFKevinX"
+            }
+        ],
+        "Category": "Windows and Tasks",
+        "Description": "Numbered workspace pills with live desktop previews",
+        "Icon": "virtual-desktops",
+        "Id": "chromatia.workspaces",
+        "License": "MIT",
+        "Name": "Chromatia Workspaces",
+        "Version": "1.0",
+        "FormFactors": [
+            "desktop",
+            "panel"
+        ],
+        "Website": "https://github.com/xAFKevinX/Chromatia"
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

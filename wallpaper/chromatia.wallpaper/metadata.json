@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "Plasma/Wallpaper",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "xAFKevinX"
+            }
+        ],
+        "Description": "Image or video wallpaper with the Chromatia frame and an audio visualizer",
+        "Icon": "preferences-desktop-wallpaper",
+        "Id": "chromatia.wallpaper",
+        "License": "MIT",
+        "Name": "Chromatia Wallpaper",
+        "Version": "1.0",
+        "Website": "https://github.com/xAFKevinX/Chromatia"
+    },
+    "X-KDE-ParentApp": "org.kde.plasmashell"
+}

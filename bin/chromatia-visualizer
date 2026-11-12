@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+"""chromatia-visualizer – audio spectrum for the Chromatia dashboard and wallpaper.
+
+Provides io.github.chromatia.Visualizer on the session bus. Widgets call Bars() ~25 times
+per second while something is playing. The first call starts cava; after 3 s without calls
+cava is stopped again, after 60 s the helper exits. It is started on demand via D-Bus
+activation, so nothing runs permanently.
+"""
+import os
+import shutil
+import subprocess
+import time
+
+import dbus
+import dbus.service
+from dbus.mainloop.glib import DBusGMainLoop
+from gi.repository import GLib
+
+BARS = 48
+NAME = "io.github.chromatia.Visualizer"
+PATH = "/io/github/chromatia/Visualizer"
+CONF = os.path.expanduser("~/.config/chromatia/cava.conf")
+
+CAVA_CONF = f"""[general]
+bars = {BARS}
+framerate = 30
+autosens = 1
+
+[input]
+method = pulse
+source = auto
+
+[output]
+method = raw
+raw_target = /dev/stdout
+data_format = ascii
+ascii_max_range = 1000
+bar_delimiter = 59
+frame_delimiter = 10
+channels = mono
+
+[smoothing]
+noise_reduction = 66
+"""
+
+
+class Visualizer(dbus.service.Object):
+    def __init__(self, bus):
+        super().__init__(dbus.service.BusName(NAME, bus), PATH)
+        self.values = [0.0] * BARS
+        self.proc = None
+        self.buf = b""
+        self.last_call = time.monotonic()
+        GLib.timeout_add_seconds(1, self.housekeeping)
+
+    @dbus.service.method(NAME, in_signature="", out_signature="ad")
+    def Bars(self):
+        self.last_call = time.monotonic()
+        if self.proc is None:
+            self.start()
+        return self.values
+
+    @dbus.service.method(NAME, in_signature="", out_signature="b")
+    def Available(self):
+        return shutil.which("cava") is not None
+
+    def start(self):
+        if shutil.which("cava") is None:
+            return
+        os.makedirs(os.path.dirname(CONF), exist_ok=True)
+        with open(CONF, "w") as f:
+            f.write(CAVA_CONF)
+        self.proc = subprocess.Popen(["cava", "-p", CONF], stdout=subprocess.PIPE,
+                                     stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
+        os.set_blocking(self.proc.stdout.fileno(), False)
+        GLib.io_add_watch(self.proc.stdout.fileno(), GLib.IO_IN | GLib.IO_HUP, self.read)
+
+    def read(self, fd, cond):
+        if cond & GLib.IO_HUP:
+            self.stop()
+            return False
+        try:
+            chunk = os.read(fd, 65536)
+        except BlockingIOError:
+            return True
+        if not chunk:
+            self.stop()
+            return False
+        self.buf += chunk
+        *frames, self.buf = self.buf.split(b"\n")
+        if frames:
+            parts = frames[-1].decode(errors="ignore").strip(";").split(";")
+            if len(parts) == BARS:
+                try:
+                    self.values = [min(1.0, int(p) / 1000.0) for p in parts]
+                except ValueError:
+                    pass
+        return True
+
+    def stop(self):
+        if self.proc is not None:
+            self.proc.terminate()
+            try:
+                self.proc.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                self.proc.kill()
+            self.proc = None
+            self.values = [0.0] * BARS
+
+    def housekeeping(self):
+        idle = time.monotonic() - self.last_call
+        if idle > 3:
+            self.stop()
+        if idle > 60:
+            loop.quit()
+            return False
+        return True
+
+
+if __name__ == "__main__":
+    DBusGMainLoop(set_as_default=True)
+    loop = GLib.MainLoop()
+    vis = Visualizer(dbus.SessionBus())
+    try:
+        loop.run()
+    finally:
+        vis.stop()

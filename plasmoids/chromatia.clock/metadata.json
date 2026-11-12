@@ -1,0 +1,22 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "xAFKevinX"
+            }
+        ],
+        "Category": "Date and Time",
+        "Description": "Large digital desktop clock with date, tinted by the wallpaper accent",
+        "Icon": "clock",
+        "Id": "chromatia.clock",
+        "License": "MIT",
+        "Name": "Chromatia Clock",
+        "Version": "1.0",
+        "FormFactors": [
+            "desktop"
+        ],
+        "Website": "https://github.com/xAFKevinX/Chromatia"
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

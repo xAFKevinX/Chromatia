@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0 http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+  <kcfgfile name=""/>
+  <group name="General">
+    <entry name="AccentColor" type="String"><default></default></entry>
+    <entry name="Image" type="String"><default></default></entry>
+    <entry name="SwitchGo" type="String"><default></default></entry>
+    <entry name="BarHeight" type="Int"><default>90</default></entry>
+    <entry name="BottomOffset" type="Int"><default>42</default></entry>
+    <entry name="VisualizerEnabled" type="Bool"><default>true</default></entry>
+    <entry name="FrameTop" type="Int"><default>0</default></entry>
+    <entry name="FrameBottom" type="Int"><default>0</default></entry>
+    <entry name="FrameLeft" type="Int"><default>0</default></entry>
+    <entry name="FrameRight" type="Int"><default>0</default></entry>
+    <entry name="FrameRadius" type="Int"><default>0</default></entry>
+    <entry name="PauseWhenCovered" type="Bool"><default>true</default></entry>
+  </group>
+</kcfg>

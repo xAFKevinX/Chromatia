@@ -1,0 +1,9 @@
+[Unit]
+Description=Chromatia: watch for wallpaper changes
+StartLimitIntervalSec=0
+
+[Path]
+PathChanged=%h/.config/plasma-org.kde.plasma.desktop-appletsrc
+
+[Install]
+WantedBy=default.target

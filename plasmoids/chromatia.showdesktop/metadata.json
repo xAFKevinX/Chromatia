@@ -1,0 +1,22 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "xAFKevinX"
+            }
+        ],
+        "Category": "Windows and Tasks",
+        "Description": "Kawaii dog button: minimizes all windows, a second click brings them back",
+        "Icon": "user-desktop",
+        "Id": "chromatia.showdesktop",
+        "License": "MIT",
+        "Name": "Chromatia Show Desktop",
+        "Version": "1.0",
+        "FormFactors": [
+            "panel"
+        ],
+        "Website": "https://github.com/xAFKevinX/Chromatia"
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

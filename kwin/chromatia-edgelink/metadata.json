@@ -1,0 +1,20 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "xAFKevinX"
+            }
+        ],
+        "Category": "Window Management",
+        "Description": "Windows that sit edge to edge resize together",
+        "EnabledByDefault": false,
+        "Id": "chromatia-edgelink",
+        "License": "MIT",
+        "Name": "Chromatia Edge Link",
+        "Version": "1.0",
+        "Website": "https://github.com/xAFKevinX/Chromatia"
+    },
+    "X-Plasma-API": "javascript",
+    "X-Plasma-MainScript": "code/main.js",
+    "KPackageStructure": "KWin/Script"
+}

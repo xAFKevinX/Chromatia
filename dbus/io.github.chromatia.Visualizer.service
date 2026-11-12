@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=io.github.chromatia.Visualizer
+Exec=/usr/bin/python3 @BINDIR@/chromatia-visualizer

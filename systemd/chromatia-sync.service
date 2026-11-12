@@ -1,0 +1,6 @@
+[Unit]
+Description=Chromatia: follow the wallpaper colors
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 %h/.local/bin/chromatia-sync

@@ -1,0 +1,22 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "xAFKevinX"
+            }
+        ],
+        "Category": "Windows and Tasks",
+        "Description": "Task dock with live window previews, grouped by application",
+        "Icon": "preferences-system-windows",
+        "Id": "chromatia.dock",
+        "License": "MIT",
+        "Name": "Chromatia Dock",
+        "Version": "1.0",
+        "FormFactors": [
+            "panel"
+        ],
+        "Website": "https://github.com/xAFKevinX/Chromatia"
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

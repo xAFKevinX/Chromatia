@@ -1,0 +1,22 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "xAFKevinX"
+            }
+        ],
+        "Category": "Utilities",
+        "Description": "Wallpaper gallery that slides out of the left screen edge (images and videos)",
+        "Icon": "preferences-desktop-wallpaper",
+        "Id": "chromatia.wallpaperpanel",
+        "License": "MIT",
+        "Name": "Chromatia Wallpaper Panel",
+        "Version": "1.0",
+        "FormFactors": [
+            "panel"
+        ],
+        "Website": "https://github.com/xAFKevinX/Chromatia"
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

@@ -1,0 +1,22 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "xAFKevinX"
+            }
+        ],
+        "Category": "System Information",
+        "Description": "Dashboard that slides down from the top edge: clock, calendar, media, audio mixer, system stats and notes",
+        "Icon": "dashboard-show",
+        "Id": "chromatia.dashboard",
+        "License": "MIT",
+        "Name": "Chromatia Dashboard",
+        "Version": "1.0",
+        "FormFactors": [
+            "panel"
+        ],
+        "Website": "https://github.com/xAFKevinX/Chromatia"
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

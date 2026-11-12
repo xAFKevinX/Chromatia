@@ -1,0 +1,92 @@
+diff -ru a/contents/ui/components/Indicator.qml b/contents/ui/components/Indicator.qml
+--- a/contents/ui/components/Indicator.qml	2026-11-11 11:13:43.299680445 +0100
++++ b/contents/ui/components/Indicator.qml	2026-11-11 13:41:08.073093564 +0100
+@@ -36,7 +36,7 @@
+                 }
+                 border.color: colorHelper.getBorderColor(color)
+                 border.width: 1
+-                radius: 5
++                radius: 4
+ 
+                 Behavior on color {
+                     ColorAnimation {
+diff -ru a/contents/ui/components/Selector.qml b/contents/ui/components/Selector.qml
+--- a/contents/ui/components/Selector.qml	2026-11-11 11:13:43.299680445 +0100
++++ b/contents/ui/components/Selector.qml	2026-11-11 13:41:08.072984393 +0100
+@@ -19,11 +19,11 @@
+     visible: false
+     anchors.horizontalCenter: parent.horizontalCenter
+     anchors.top: parent.top
+-    anchors.topMargin: expanded ? 0 : (near ? -height + 30 : -height)
++    anchors.topMargin: (expanded || near) ? 0 : -height   // Chromatia: fully visible while a window is moved
+ 
+     Behavior on anchors.topMargin {
+         NumberAnimation {
+-            duration: 150
++            duration: 220
+             onRunningChanged: {
+                 if (!running) selector.visible = true;
+                 selector.animating = running;
+@@ -31,8 +31,8 @@
+         }
+     }
+ 
+-    width: background.width + 30
+-    height: background.height + 40
++    width: background.width + 21     // Chromatia: 30 % smaller
++    height: background.height + 28
+ 
+     Rectangle {
+         id: background
+@@ -41,16 +41,16 @@
+         height: row.implicitHeight + row.spacing * 2
+         anchors.bottom: parent.bottom
+         anchors.horizontalCenter: parent.horizontalCenter
+-        anchors.bottomMargin: 15
++        anchors.bottomMargin: 10
+         color: colorHelper.backgroundColor
+-        radius: 10
++        radius: 13
+         border.color: colorHelper.getBorderColor(color)
+         border.width: 1
+ 
+         RowLayout {
+             id: row
+ 
+-            spacing: 15
++            spacing: 10
+             anchors.fill: parent
+             anchors.margins: spacing
+ 
+@@ -62,8 +62,8 @@
+                 Components.Indicator {
+                     zones: modelData.zones
+                     activeZone: (currentLayout == index) ? highlightedZone : -1
+-                    width: 160 - 30
+-                    height: 100 - 30
++                    width: 91
++                    height: 49
+                     hovering: (currentLayout == index)
+                 }
+             }
+diff -ru a/contents/ui/main.qml b/contents/ui/main.qml
+--- a/contents/ui/main.qml	2026-11-11 11:13:43.299542015 +0100
++++ b/contents/ui/main.qml	2026-11-11 11:35:06.926110687 +0100
+@@ -127,7 +127,7 @@
+ 
+     function refreshClientArea() {
+         activeScreen = Workspace.activeScreen;
+-        clientArea = Workspace.clientArea(KWin.FullScreenArea, activeScreen, Workspace.currentDesktop);
++        clientArea = Workspace.clientArea(KWin.MaximizeArea, activeScreen, Workspace.currentDesktop);   // Chromatia: keep zones inside the frame and panels
+         displaySize = Workspace.virtualScreenSize;
+         currentLayout = getCurrentLayout();
+     }
+@@ -745,7 +745,7 @@
+                     zoneSelector.expanded = isHovering(zoneSelector) && (Workspace.cursorPos.y - clientArea.y) >= 0;
+                     // set zoneSelector near state
+                     const triggerDistance = config.zoneSelectorTriggerDistance * 50 + 25;
+-                    zoneSelector.near = (Workspace.cursorPos.y - clientArea.y) < zoneSelector.y + zoneSelector.height + triggerDistance;
++                    zoneSelector.near = true;   // Chromatia: show the selector as soon as a window is grabbed
+                 }
+ 
+                 // edge snapping
