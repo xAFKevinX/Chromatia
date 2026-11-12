@@ -1,0 +1,14 @@
+# Changelog
+
+## 1.1.0
+- **Chromatia Settings**: the gear in the dashboard opens Colors (accent from the wallpaper or a fixed color, KDE accent on/off) and Audio (choose which outputs and microphones the dashboard shows, give them your own names).
+- **Updates**: the dashboard tells you when a new version is out and installs it with one click. Settings → About & Updates shows the version and the changes.
+- `./install.sh --update` updates Chromatia without touching your panels or settings.
+
+## 1.0.1
+- Fixed: black screen with only the clock on fresh accounts (Plasma waited for a wallpaper that was never set).
+- The installer sets a first wallpaper and can enable the Magic Lamp minimize animation.
+- Dates and weekday names are English everywhere.
+
+## 1.0.0
+- First release.

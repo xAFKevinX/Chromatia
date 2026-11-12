@@ -12,4 +12,9 @@ ConfigModel {
         icon: "audio-volume-high"
         source: "configAudio.qml"
     }
+    ConfigCategory {
+        name: "About & Updates"
+        icon: "help-about"
+        source: "configAbout.qml"
+    }
 }

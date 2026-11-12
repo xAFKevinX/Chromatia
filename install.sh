@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Chromatia installer – KDE Plasma 6 (Wayland)
+# Usage: ./install.sh            full install (asks before optional steps)
+#        ./install.sh --update   update files only, keeps panels and settings
 # Installs the widgets, the wallpaper plugin, the helper scripts and services.
 # Optional steps (panel layout, KZones tweaks, minimize animation, hot corner) ask before touching anything.
 set -euo pipefail
@@ -7,7 +9,14 @@ set -euo pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 BIN="$HOME/.local/bin"
 DATA="$HOME/.local/share/chromatia"
-YES=0; [[ "${1:-}" == "--yes" ]] && YES=1
+YES=0; UPDATE=0
+for arg in "$@"; do
+    case "$arg" in
+        --yes) YES=1 ;;
+        --update) UPDATE=1; YES=1 ;;   # only refresh files, never touch panels or settings
+    esac
+done
+VERSION=$(cat VERSION 2>/dev/null || echo "0.0.0")
 
 say()  { printf '\033[1;35m::\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!!\033[0m %s\n' "$*"; }
@@ -45,12 +54,12 @@ say "Installing wallpaper plugin"
 pkg Plasma/Wallpaper wallpaper/chromatia.wallpaper
 say "Installing KWin script (edge link)"
 pkg KWin/Script kwin/chromatia-edgelink
-kwriteconfig6 --file kwinrc --group Plugins --key chromatia-edgelinkEnabled true
+[[ $UPDATE == 0 ]] && kwriteconfig6 --file kwinrc --group Plugins --key chromatia-edgelinkEnabled true   # keep the user's choice on updates
 
 # ---------------------------------------------------------------- helpers + services
 say "Installing helper scripts and services"
 mkdir -p "$BIN" "$DATA" "$HOME/.local/share/dbus-1/services" "$HOME/.config/systemd/user" "$HOME/.config/chromatia"
-install -m 755 bin/chromatia-sync bin/chromatia-visualizer "$BIN/"
+install -m 755 bin/chromatia-sync bin/chromatia-visualizer bin/chromatia-update "$BIN/"
 sed "s|@BINDIR@|$BIN|" dbus/io.github.chromatia.Visualizer.service > "$HOME/.local/share/dbus-1/services/io.github.chromatia.Visualizer.service"
 install -m 644 systemd/chromatia-sync.service systemd/chromatia-sync.path "$HOME/.config/systemd/user/"
 install -m 644 layout/blank.svg "$DATA/blank.svg"
@@ -67,6 +76,8 @@ if [[ -z "$first" ]]; then
 fi
 systemctl --user daemon-reload
 systemctl --user enable --now chromatia-sync.path >/dev/null 2>&1
+
+if [[ $UPDATE == 0 ]]; then   # optional setup steps – skipped by --update
 
 # ---------------------------------------------------------------- panel layout
 plasma() { qdbus-qt6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$1"; }
@@ -136,6 +147,13 @@ if ask "Bottom-left hot corner opens the application launcher?"; then
     kwriteconfig6 --file kwinrc --group ElectricBorders --key BottomLeft ApplicationLauncher
 fi
 
+fi
+
+# ---------------------------------------------------------------- remember where we live
+CONF="$HOME/.config/chromatia/chromatia.conf"
+kwriteconfig6 --file "$CONF" --group General --key RepoPath "$(pwd)"
+kwriteconfig6 --file "$CONF" --group General --key InstalledVersion "$VERSION"
+
 # ---------------------------------------------------------------- reload
 say "Reloading KWin and Plasma"
 qdbus-qt6 org.kde.KWin /KWin reconfigure >/dev/null 2>&1 || true
@@ -143,5 +161,6 @@ systemctl --user restart plasma-plasmashell.service
 sleep 6
 "$BIN/chromatia-sync" >/dev/null 2>&1 || true
 echo
+if [[ $UPDATE == 1 ]]; then say "Chromatia updated to $VERSION."; exit 0; fi
 say "Done! Put images or videos into $pictures/Wallpapers and move the mouse to the"
 echo "   middle of the left screen edge to pick one. Everything recolors itself."

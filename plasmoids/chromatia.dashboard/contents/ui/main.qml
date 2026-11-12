@@ -149,6 +149,27 @@ PlasmoidItem {
     }
 
     // Lesbare Gerätenamen
+    // ---- Updates (chromatia-update): check at start and every 6 hours, install only on click ----
+    property var update: ({ available: false, installed: "", latest: "", changes: [], error: "" })
+    property bool showUpdate: false
+    property string updateState: ""          // "", "running", "error"
+    property string updateError: ""
+    readonly property string updater: "\"$HOME/.local/bin/chromatia-update\""
+    P5Support.DataSource {
+        id: updateRunner
+        engine: "executable"
+        onNewData: (source, data) => {
+            disconnectSource(source);
+            let r = null;
+            try { r = JSON.parse(data.stdout); } catch (e) { return; }
+            if (source.indexOf("--check") >= 0) root.update = r;
+            else if (!r.ok) { root.updateState = "error"; root.updateError = r.error; }
+        }
+    }
+    function checkUpdates() { updateRunner.connectSource(root.updater + " --check"); }
+    function applyUpdate() { root.updateState = "running"; updateRunner.connectSource(root.updater + " --apply"); }
+    Timer { interval: 6 * 3600 * 1000; running: true; repeat: true; triggeredOnStart: true; onTriggered: root.checkUpdates() }
+
     // Device choice and names from Chromatia Settings (Audio page)
     function jsonOr(t, d) { try { return JSON.parse(t); } catch (e) { return d; } }
     readonly property var hiddenOutputs: jsonOr(Plasmoid.configuration.hiddenOutputs, [])
@@ -332,8 +353,35 @@ PlasmoidItem {
                             }
                         }
 
+                        // Update available: glowing pill left of the gear
+                        Rectangle {
+                            visible: root.update.available === true
+                            anchors.right: gearButton.left
+                            anchors.rightMargin: 8
+                            y: 12
+                            height: 34
+                            width: updRow.implicitWidth + 24
+                            radius: 17
+                            color: root.accent
+                            SequentialAnimation on opacity {
+                                running: root.update.available === true && !root.showUpdate
+                                loops: Animation.Infinite
+                                NumberAnimation { to: 0.65; duration: 900; easing.type: Easing.InOutSine }
+                                NumberAnimation { to: 1.0; duration: 900; easing.type: Easing.InOutSine }
+                            }
+                            Row {
+                                id: updRow
+                                anchors.centerIn: parent
+                                spacing: 6
+                                Kirigami.Icon { width: 16; height: 16; source: "update-none-symbolic"; isMask: true; color: "white"; anchors.verticalCenter: parent.verticalCenter }
+                                Text { text: "Update"; color: "white"; font.pixelSize: 13; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
+                            }
+                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.showUpdate = !root.showUpdate }
+                        }
+
                         // Settings: opens the widget's configuration dialog (= Chromatia Settings)
                         Rectangle {
+                            id: gearButton
                             anchors.right: parent.right
                             anchors.rightMargin: 16
                             y: 12
@@ -353,6 +401,75 @@ PlasmoidItem {
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: { root.requestClose(); Plasmoid.internalAction("configure").trigger(); }
+                            }
+                        }
+
+                        // Update card: what's new + install button
+                        Rectangle {
+                            visible: root.showUpdate
+                            anchors.fill: pages
+                            z: 20
+                            radius: 18
+                            color: root.cCard
+                            Column {
+                                anchors.fill: parent
+                                anchors.margins: 18
+                                spacing: 8
+                                Text {
+                                    text: "Chromatia " + root.update.latest + " is available"
+                                    color: root.cText; font.pixelSize: 17; font.bold: true
+                                }
+                                Text {
+                                    text: "You have " + root.update.installed + ".  What's new:"
+                                    color: root.cDim; font.pixelSize: 12
+                                }
+                                Flickable {
+                                    width: parent.width
+                                    height: parent.height - 120
+                                    clip: true
+                                    contentHeight: changeCol.implicitHeight
+                                    Column {
+                                        id: changeCol
+                                        width: parent.width
+                                        spacing: 4
+                                        Repeater {
+                                            model: root.update.changes || []
+                                            Column {
+                                                width: changeCol.width
+                                                spacing: 2
+                                                Text { text: modelData.version; color: root.accent; font.pixelSize: 13; font.bold: true }
+                                                Repeater {
+                                                    model: modelData.items
+                                                    Text { width: changeCol.width; text: "•  " + modelData; color: root.cText; font.pixelSize: 12; wrapMode: Text.Wrap }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                Text {
+                                    visible: root.updateState !== ""
+                                    width: parent.width
+                                    wrapMode: Text.Wrap
+                                    text: root.updateState === "running" ? "Updating… Plasma restarts in a moment."
+                                                                         : ("Update failed: " + root.updateError)
+                                    color: root.updateState === "error" ? "#e5484d" : root.cText
+                                    font.pixelSize: 12
+                                }
+                                Row {
+                                    spacing: 10
+                                    Rectangle {
+                                        width: nowText.implicitWidth + 32; height: 34; radius: 17
+                                        color: root.updateState === "running" ? root.cCard2 : root.accent
+                                        Text { id: nowText; anchors.centerIn: parent; text: "Update now"; color: "white"; font.pixelSize: 13; font.bold: true }
+                                        MouseArea { anchors.fill: parent; enabled: root.updateState !== "running"; cursorShape: Qt.PointingHandCursor; onClicked: root.applyUpdate() }
+                                    }
+                                    Rectangle {
+                                        width: laterText.implicitWidth + 32; height: 34; radius: 17
+                                        color: root.cCard2
+                                        Text { id: laterText; anchors.centerIn: parent; text: "Later"; color: root.cText; font.pixelSize: 13 }
+                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.showUpdate = false }
+                                    }
+                                }
                             }
                         }
 

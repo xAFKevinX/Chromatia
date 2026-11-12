@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""chromatia-update – check for and install Chromatia updates.
+
+    chromatia-update --check   print JSON: installed/latest version, whether an update is
+                               available and the changelog entries in between
+    chromatia-update --apply   git pull + ./install.sh --update (only when the user clicks)
+
+Works for installs from a git clone (the path is remembered by install.sh in
+~/.config/chromatia/chromatia.conf). Nothing is ever installed without --apply.
+"""
+import configparser
+import json
+import os
+import re
+import subprocess
+import sys
+
+CONF = os.path.expanduser("~/.config/chromatia/chromatia.conf")
+LOG = os.path.expanduser("~/.cache/chromatia/update.log")
+
+
+def conf():
+    cp = configparser.RawConfigParser(strict=False)
+    cp.optionxform = str
+    cp.read(CONF, encoding="utf-8")
+    return {k: v for k, v in cp.items("General")} if cp.has_section("General") else {}
+
+
+def vtuple(v):
+    return tuple(int(x) for x in re.findall(r"\d+", v or "0")[:3]) or (0,)
+
+
+def git(repo, *args):
+    return subprocess.run(["git", "-C", repo, *args], capture_output=True, text=True, timeout=60)
+
+
+def changes_between(changelog, old, new):
+    """Changelog sections newer than `old` up to `new`."""
+    out, cur = [], None
+    for line in changelog.splitlines():
+        m = re.match(r"##\s+(\d+\.\d+\.\d+)", line)
+        if m:
+            v = m.group(1)
+            cur = v if vtuple(old) < vtuple(v) <= vtuple(new) else None
+            if cur:
+                out.append({"version": v, "items": []})
+        elif cur and line.strip().startswith("-"):
+            out[-1]["items"].append(re.sub(r"\*\*|`", "", line.strip()[1:].strip()))
+    return out
+
+
+def check():
+    c = conf()
+    repo, installed = c.get("RepoPath", ""), c.get("InstalledVersion", "0.0.0")
+    res = {"installed": installed, "latest": installed, "available": False, "changes": [], "error": ""}
+    if not repo or not os.path.isdir(os.path.join(repo, ".git")):
+        res["error"] = "Updates need a git clone of Chromatia (install with git clone)."
+        return res
+    f = git(repo, "fetch", "-q", "origin")
+    if f.returncode != 0:
+        res["error"] = "Could not reach GitHub."
+        return res
+    branch = git(repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip() or "main"
+    latest = git(repo, "show", f"origin/{branch}:VERSION").stdout.strip()
+    if not latest:
+        res["error"] = "No version information found."
+        return res
+    res["latest"] = latest
+    if vtuple(latest) > vtuple(installed):
+        res["available"] = True
+        res["changes"] = changes_between(git(repo, "show", f"origin/{branch}:CHANGELOG.md").stdout, installed, latest)
+    return res
+
+
+def apply():
+    repo = conf().get("RepoPath", "")
+    os.makedirs(os.path.dirname(LOG), exist_ok=True)
+    with open(LOG, "a") as log:
+        p = subprocess.run(["git", "-C", repo, "pull", "--ff-only", "-q"], stdout=log, stderr=log, timeout=120)
+        if p.returncode != 0:
+            return {"ok": False, "error": "git pull failed – local changes in " + repo + "? See " + LOG}
+        # install.sh restarts Plasma at the end, so run it detached from the widget that called us
+        subprocess.Popen(["setsid", "bash", os.path.join(repo, "install.sh"), "--update"],
+                         cwd=repo, stdout=log, stderr=log, start_new_session=True)
+    return {"ok": True, "error": ""}
+
+
+if __name__ == "__main__":
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "--check"
+    print(json.dumps(apply() if cmd == "--apply" else check()))
