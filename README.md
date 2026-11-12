@@ -1,5 +1,7 @@
 # Chromatia
 
+> ⚠️ **Please don't install yet.** The installer can leave you with a black screen on a fresh account. A fix is on the way.
+
 **A KDE Plasma 6 desktop that takes its colors from your wallpaper — images *and* videos.**
 
 Pick a wallpaper and everything follows: the frame around the screen, the island bar, the dock,
