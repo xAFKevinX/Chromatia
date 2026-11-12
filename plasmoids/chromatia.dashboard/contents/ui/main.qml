@@ -345,7 +345,7 @@ PlasmoidItem {
                                         spacing: 4
                                         Text {
                                             anchors.horizontalCenter: parent.horizontalCenter
-                                            text: Qt.locale().toString(root.now, "hh:mm")
+                                            text: Qt.locale("en_US").toString(root.now, "hh:mm")
                                             color: root.cText
                                             font.pixelSize: 62
                                             font.bold: true
@@ -358,14 +358,14 @@ PlasmoidItem {
                                         Item { width: 1; height: 4 }
                                         Text {
                                             anchors.horizontalCenter: parent.horizontalCenter
-                                            text: Qt.locale().toString(root.now, "dddd")
+                                            text: Qt.locale("en_US").toString(root.now, "dddd")
                                             color: root.cAccentSoft
                                             font.pixelSize: 18
                                             font.bold: true
                                         }
                                         Text {
                                             anchors.horizontalCenter: parent.horizontalCenter
-                                            text: Qt.locale().toString(root.now, "d MMMM yyyy")
+                                            text: Qt.locale("en_US").toString(root.now, "d MMMM yyyy")
                                             color: root.cDim
                                             font.pixelSize: 14
                                         }
@@ -397,7 +397,7 @@ PlasmoidItem {
                                     Text {
                                         id: monthTitle
                                         x: 16; y: 14
-                                        text: Qt.locale().toString(root.now, "MMMM yyyy")
+                                        text: Qt.locale("en_US").toString(root.now, "MMMM yyyy")
                                         color: root.cText
                                         font.pixelSize: 15
                                         font.bold: true
@@ -413,7 +413,7 @@ PlasmoidItem {
                                         readonly property int cell: 29
 
                                         Repeater {
-                                            model: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+                                            model: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
                                             Text {
                                                 width: cal.cell; height: 20
                                                 horizontalAlignment: Text.AlignHCenter

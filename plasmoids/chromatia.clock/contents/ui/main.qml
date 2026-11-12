@@ -42,7 +42,7 @@ PlasmoidItem {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: Math.round(2 * face.s)
                     Text {
-                        text: Qt.locale().toString(root.now, "hh")
+                        text: Qt.locale("en_US").toString(root.now, "hh")
                         color: root.cTime
                         font.pixelSize: Math.round(96 * face.s)
                         font.weight: Font.Black
@@ -56,7 +56,7 @@ PlasmoidItem {
                         anchors.verticalCenterOffset: -Math.round(6 * face.s)
                     }
                     Text {
-                        text: Qt.locale().toString(root.now, "mm")
+                        text: Qt.locale("en_US").toString(root.now, "mm")
                         color: root.cTime
                         font.pixelSize: Math.round(96 * face.s)
                         font.weight: Font.Black
@@ -75,20 +75,20 @@ PlasmoidItem {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: Math.round(2 * face.s)
                     Text {
-                        text: Qt.locale().toString(root.now, "MMMM").toUpperCase()
+                        text: Qt.locale("en_US").toString(root.now, "MMMM").toUpperCase()
                         color: root.cSoft
                         font.pixelSize: Math.round(20 * face.s)
                         font.bold: true
                         font.letterSpacing: Math.round(4 * face.s)
                     }
                     Text {
-                        text: Qt.locale().toString(root.now, "dd")
+                        text: Qt.locale("en_US").toString(root.now, "dd")
                         color: root.cTime
                         font.pixelSize: Math.round(44 * face.s)
                         font.weight: Font.Black
                     }
                     Text {
-                        text: Qt.locale().toString(root.now, "dddd")
+                        text: Qt.locale("en_US").toString(root.now, "dddd")
                         color: root.cDim
                         font.pixelSize: Math.round(18 * face.s)
                         font.letterSpacing: Math.round(1 * face.s)
