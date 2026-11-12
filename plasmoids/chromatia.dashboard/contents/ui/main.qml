@@ -149,7 +149,13 @@ PlasmoidItem {
     }
 
     // Lesbare Gerätenamen
-    function niceName(desc, mic) {
+    // Device choice and names from Chromatia Settings (Audio page)
+    function jsonOr(t, d) { try { return JSON.parse(t); } catch (e) { return d; } }
+    readonly property var hiddenOutputs: jsonOr(Plasmoid.configuration.hiddenOutputs, [])
+    readonly property var hiddenInputs: jsonOr(Plasmoid.configuration.hiddenInputs, [])
+    readonly property var deviceNames: jsonOr(Plasmoid.configuration.deviceNames, ({}))
+    function niceName(desc, mic, name) {
+        if (name && deviceNames[name]) return deviceNames[name];
         const d = desc || "";
         return aliasFor(d, d);
     }
@@ -323,6 +329,30 @@ PlasmoidItem {
                                         onClicked: { root.tab = index; Plasmoid.configuration.lastTab = index; }
                                     }
                                 }
+                            }
+                        }
+
+                        // Settings: opens the widget's configuration dialog (= Chromatia Settings)
+                        Rectangle {
+                            anchors.right: parent.right
+                            anchors.rightMargin: 16
+                            y: 12
+                            width: 34; height: 34; radius: 17
+                            color: gearMouse.containsMouse ? root.cCard2 : root.cCard
+                            Behavior on color { ColorAnimation { duration: 160 } }
+                            Kirigami.Icon {
+                                anchors.centerIn: parent
+                                width: 16; height: 16
+                                source: "configure-symbolic"
+                                isMask: true
+                                color: root.cText
+                            }
+                            MouseArea {
+                                id: gearMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: { root.requestClose(); Plasmoid.internalAction("configure").trigger(); }
                             }
                         }
 
@@ -842,7 +872,8 @@ PlasmoidItem {
         readonly property string desc: String(model.Description || "")
         readonly property var ex: root.rx(Plasmoid.configuration.outputExclude)
         readonly property var inc: root.rx(Plasmoid.configuration.inputInclude)
-        readonly property bool wanted: mic ? (!inc || inc.test(desc)) : (!ex || !ex.test(desc))
+        readonly property bool hiddenBySettings: (mic ? root.hiddenInputs : root.hiddenOutputs).indexOf(String(model.Name || "")) >= 0
+        readonly property bool wanted: !hiddenBySettings && (mic ? (!inc || inc.test(desc)) : (!ex || !ex.test(desc)))
         visible: !isMonitor && wanted
         width: parent ? parent.width : 300
         height: visible ? 64 : 0
@@ -863,7 +894,7 @@ PlasmoidItem {
             anchors.left: dot.right; anchors.leftMargin: 10
             anchors.right: parent.right; anchors.rightMargin: 12
             anchors.verticalCenter: dot.verticalCenter
-            text: root.niceName(model.Description, dr.mic)
+            text: root.niceName(model.Description, dr.mic, String(model.Name || ""))
             color: root.cText
             font.pixelSize: 13
             font.bold: model.Default

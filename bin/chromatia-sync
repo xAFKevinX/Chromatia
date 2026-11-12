@@ -55,8 +55,35 @@ def read_ini(path):
     return cp
 
 
+def dashboard_settings():
+    """Chromatia Settings live in the dashboard widget's config (gear in the dashboard)."""
+    cp = read_ini(APPLETSRC)
+    for sec in cp.sections():
+        if cp.get(sec, "plugin", fallback="") == "chromatia.dashboard":
+            g = sec + "][Configuration][General"
+            return {k: v for k, v in cp.items(g)} if cp.has_section(g) else {}
+    return {}
+
+
 def setting(key, default):
+    """Dashboard settings first, then ~/.config/chromatia/chromatia.conf, then the default."""
+    dash = dashboard_settings()
+    keymap = {"SystemAccent": "systemAccent"}
+    if keymap.get(key, key) in dash:
+        return dash[keymap.get(key, key)]
     return read_ini(CONFIG).get("General", key, fallback=default)
+
+
+def fixed_accent():
+    """(r, g, b) if the user chose a fixed accent color, else None."""
+    d = dashboard_settings()
+    if d.get("accentMode", "0") != "1":
+        return None
+    h = d.get("fixedAccent", "").lstrip("#")[-6:]
+    try:
+        return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+    except ValueError:
+        return None
 
 
 def pictures_dir():
@@ -251,7 +278,9 @@ def make_framed(src, out, screen, color):
 
 
 def fingerprint(walls):
-    return json.dumps(sorted((str(k), v[2], v[1] or "") for k, v in walls.items()))
+    d = dashboard_settings()
+    extra = [d.get(k, "") for k in ("accentMode", "fixedAccent", "systemAccent")]
+    return json.dumps([sorted((str(k), v[2], v[1] or "") for k, v in walls.items()), extra])
 
 
 def main():
@@ -278,7 +307,7 @@ def main():
                 state[str(idx)] = current
     main_original = state.get("0") or next(iter(state.values()), None)
     still = still_of(main_original) if main_original and os.path.exists(main_original) else None
-    acc = pick_accent(still) if still and os.path.exists(still) else accent()
+    acc = fixed_accent() or (pick_accent(still) if still and os.path.exists(still) else accent())
     state["accent"] = "#%02x%02x%02x" % acc
     color = frame_color(acc)
     hexcol = "%02x%02x%02x" % color
