@@ -113,7 +113,16 @@ PlasmoidItem {
         const bin = String(props["application.process.binary"] || "");
         let n = (m.Client && m.Client.name) ? m.Client.name : String(m.Name || "");
         if (n === "Chromium" && bin) n = bin;
-        return n;
+        return root.aliasFor(n + " " + bin, n);
+    }
+
+    // ---- Optional device/app filters and nicer names (Chromatia settings) ----
+    // aliases: JSON list of [regex, name], e.g. [["sharkoon","Headset"],["whispr","OpenWhispr"]]
+    function rx(t) { try { return t ? new RegExp(t, "i") : null; } catch (e) { return null; } }
+    readonly property var aliasList: { try { return JSON.parse(Plasmoid.configuration.aliases || "[]"); } catch (e) { return []; } }
+    function aliasFor(text, fallback) {
+        for (const a of aliasList) { const r = rx(a[0]); if (r && r.test(text)) return a[1]; }
+        return fallback;
     }
     function regroup() {
         const g = {};
@@ -141,7 +150,8 @@ PlasmoidItem {
 
     // Lesbare Gerätenamen
     function niceName(desc, mic) {
-        return desc || "";
+        const d = desc || "";
+        return aliasFor(d, d);
     }
 
     // Mission Center öffnen (Flatpak)
@@ -828,7 +838,11 @@ PlasmoidItem {
         id: dr
         property bool mic: false
         readonly property bool isMonitor: String(model.Name || "").indexOf(".monitor") >= 0
-        readonly property bool wanted: true
+        // optional filters: outputs matching outputExclude are hidden, only mics matching inputInclude are shown
+        readonly property string desc: String(model.Description || "")
+        readonly property var ex: root.rx(Plasmoid.configuration.outputExclude)
+        readonly property var inc: root.rx(Plasmoid.configuration.inputInclude)
+        readonly property bool wanted: mic ? (!inc || inc.test(desc)) : (!ex || !ex.test(desc))
         visible: !isMonitor && wanted
         width: parent ? parent.width : 300
         height: visible ? 64 : 0
