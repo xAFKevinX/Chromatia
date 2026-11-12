@@ -38,6 +38,12 @@ https://github.com/user-attachments/assets/17dc0145-0b8f-4d3d-8fab-c6801b7a00a2
 
 ## Installation – step by step
 
+> ⚠️ **Use at your own risk.** Chromatia changes your Plasma panels, wallpaper and some KWin settings.
+> It works on my machine and was tested on a fresh account, but every setup is different.
+> I take no responsibility for anything that breaks – the software is provided "as is", without any
+> warranty (see [LICENSE](LICENSE)). The installer backs up your panel layout first; still, it's a good
+> idea to try it on a test user account before using it on your main one.
+
 ### 1. Install the packages Chromatia needs
 
 This does **not** install Chromatia yet – it installs the programs Chromatia uses
