@@ -28,40 +28,76 @@ Plasma parts (widgets, a wallpaper plugin, KWin scripts) — no extra shell, not
 ## Requirements
 
 - KDE Plasma 6 on Wayland (made on Plasma 6.8 / Fedora 44)
-- Qt 6 Multimedia with the FFmpeg backend (video wallpapers)
-- GStreamer with the good plugins (still frames of videos)
-- Python 3 with Pillow, dbus-python and PyGObject
-- [`cava`](https://github.com/karlstav/cava) – optional, for the visualizers
-- **[Panel Colorizer](https://github.com/luisbocanegra/plasma-panel-colorizer)** – for the island bar and frame panels (*Add Widgets → Get New Widgets → "Panel Colorizer"*)
-- Optional: **KZones** (*System Settings → Window Management → KWin Scripts → Get New*), **Network Speed** widget (`org.kde.netspeedWidget`), **Mission Center** (opens from the dashboard)
+- A few packages (installed in step 1 below)
+- **[Panel Colorizer](https://github.com/luisbocanegra/plasma-panel-colorizer)** for the island bar and the frame panels (step 2)
+- Optional: **KZones** for window snapping, the **Network Speed** widget, **Mission Center** (opens from the dashboard)
 
-Fedora:
+## Installation – step by step
+
+### 1. Install the packages Chromatia needs
+
+This does **not** install Chromatia yet – it installs the programs Chromatia uses
+(video playback, the audio visualizer `cava`, Python libraries). Open a terminal (Konsole) and run:
+
+**Fedora**
 ```bash
 sudo dnf install qt6-qttools qt6-qtmultimedia python3-pillow python3-dbus python3-gobject gstreamer1-plugins-good cava
 ```
-Arch:
+
+**Arch / EndeavourOS / CachyOS**
 ```bash
 sudo pacman -S qt6-tools qt6-multimedia qt6-multimedia-ffmpeg python-pillow python-dbus python-gobject gst-plugins-good cava
 ```
 
-## Installation
+Other distributions: install the same things under your distro's package names. The installer
+tells you if something is still missing.
 
+### 2. Install Panel Colorizer (and optionally KZones)
+
+These come from the KDE store, not from the terminal:
+
+- **Panel Colorizer** (required for the bar): right-click the desktop → *Enter Edit Mode* → *Add Widgets…* → *Get New Widgets…* → *Download New Plasma Widgets* → search **Panel Colorizer** → *Install*.
+- **KZones** (optional, window snapping): *System Settings* → *Window Management* → *KWin Scripts* → *Get New…* → search **KZones** → *Install*.
+
+### 3. Download Chromatia
+
+This only downloads the files into a folder called `Chromatia` – nothing is installed yet:
 ```bash
 git clone https://github.com/xAFKevinX/Chromatia.git
+```
+(No `git`? `sudo dnf install git` or `sudo pacman -S git` – or click *Code → Download ZIP* on this page and unpack it.)
+
+### 4. Run the installer
+
+This is the step that actually installs Chromatia:
+```bash
 cd Chromatia
 ./install.sh
 ```
 
-The installer adds the widgets, the wallpaper plugin, the KWin script, two small helper scripts
-(`~/.local/bin/chromatia-sync`, `chromatia-visualizer`) and a systemd user unit. Then it **asks** before:
+It installs the widgets, the wallpaper plugin, the window script, two small helper programs
+(`~/.local/bin/chromatia-sync`, `chromatia-visualizer`) and a background service. Then it **asks** before:
 
-1. **replacing the panels on your primary screen** with the Chromatia layout (a backup of your current layout is saved to `~/.local/share/chromatia/backup-*`),
-2. **setting up KZones** (only if installed),
+1. **replacing the panels on your primary screen** with the Chromatia layout – answer **Y** for the full look (a backup of your current panels is saved to `~/.local/share/chromatia/backup-*`),
+2. **setting up KZones** (only asked if KZones is installed),
 3. **enabling the bottom-left hot corner** for the application launcher.
 
-Afterwards put images or videos into `~/Pictures/Wallpapers`, move the mouse to the **middle of the left screen edge** and pick one.
+Plasma restarts once at the end – your screen flickers briefly, that's normal.
+
+### 5. Add wallpapers
+
+Put images or videos (`.jpg`, `.png`, `.webp`, `.mp4`, `.webm`, …) into **`~/Pictures/Wallpapers`**,
+move the mouse to the **middle of the left screen edge** and click one. The whole desktop recolors itself.
 
 > Tip: virtual desktops per screen (*System Settings → Virtual Desktops*) work nicely with the workspace pills.
+
+### Updating later
+
+```bash
+cd Chromatia
+git pull
+./install.sh
+```
 
 ## Usage
 
