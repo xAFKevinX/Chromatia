@@ -8,6 +8,10 @@ Plasma parts (widgets, a wallpaper plugin, KWin scripts) — no extra shell, not
 
 > 📹 Preview: *add your screenshot or video here* (e.g. `docs/preview.mp4`)
 
+> 🤖 **Disclaimer:** Chromatia was made with the help of [Claude](https://claude.ai), an AI assistant by Anthropic.
+> I came up with the look, decided what goes in and tested everything on my own desktop –
+> a large part of the code was written by Claude. Just so nobody feels fooled. 🙂
+
 ---
 
 ## Features
