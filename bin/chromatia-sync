@@ -197,6 +197,132 @@ def write_konsole(rgb):
                         "--key", "DefaultProfile", "Chromatia.profile"], capture_output=True, timeout=10)
 
 
+def _jsonc_scan(text):
+    """Yield (index, char, in_string, in_comment) – tiny JSONC scanner."""
+    i, n, in_str, esc = 0, len(text), False, False
+    while i < n:
+        c = text[i]
+        if in_str:
+            yield i, c, True, False
+            if esc:
+                esc = False
+            elif c == "\\":
+                esc = True
+            elif c == '"':
+                in_str = False
+            i += 1
+        elif text.startswith("//", i):
+            j = text.find("\n", i)
+            j = n if j < 0 else j
+            for k in range(i, j):
+                yield k, text[k], False, True
+            i = j
+        elif text.startswith("/*", i):
+            j = text.find("*/", i + 2)
+            j = n if j < 0 else j + 2
+            for k in range(i, j):
+                yield k, text[k], False, True
+            i = j
+        else:
+            if c == '"':
+                in_str = True
+            yield i, c, False, False
+            i += 1
+
+
+def _jsonc_load(text):
+    plain = "".join(c for _i, c, _s, com in _jsonc_scan(text) if not com)
+    import re as _re
+    return json.loads(_re.sub(r",(\s*[}\]])", r"\1", plain))
+
+
+def _set_json_key(text, key, value, indent="    "):
+    """Replace or insert one top-level key in a JSONC object, leaving everything else as is."""
+    dumped = json.dumps(value, indent=4).replace("\n", "\n" + indent)
+    depth, pos = 0, None
+    needle = json.dumps(key)
+    for i, c, in_str, com in _jsonc_scan(text):
+        if com:
+            continue
+        if not in_str and c in "{[":
+            depth += 1
+        elif not in_str and c in "}]":
+            depth -= 1
+        elif c == '"' and depth == 1 and text.startswith(needle, i) and pos is None:
+            pos = i
+    if pos is None:                                   # insert after the opening brace
+        b = text.index("{")
+        rest = text[b + 1:]
+        sep = "," if rest.strip() and not rest.strip().startswith("}") else ""
+        return text[:b + 1] + "\n" + indent + needle + ": " + dumped + sep + rest
+    colon = text.index(":", pos + len(needle))
+    start = colon + 1
+    while text[start] in " \t\r\n":
+        start += 1
+    depth, end = 0, None                              # find the end of the existing value
+    for i, c, in_str, com in _jsonc_scan(text):
+        if i < start or com:
+            continue
+        if not in_str and c in "{[":
+            depth += 1
+        elif not in_str and c in "}]":
+            depth -= 1
+            if depth == 0:
+                end = i + 1
+                break
+    return text[:start] + dumped + text[end:]
+
+
+def write_vscode(rgb):
+    """VS Code: wallpaper colors via workbench.colorCustomizations (only that key is touched)."""
+    if setting("appColors", "true").lower() in ("false", "0", "no"):
+        return
+    path = os.path.join(HOME, ".config/Code/User/settings.json")
+    if not os.path.exists(path):
+        return
+    h, _l, _s = colorsys.rgb_to_hls(*(c / 255 for c in rgb))
+
+    def c(sat, light, alpha=""):
+        r, g, b = colorsys.hls_to_rgb(h, light, sat)
+        return "#%02x%02x%02x%s" % (round(r * 255), round(g * 255), round(b * 255), alpha)
+    a = "#%02x%02x%02x" % rgb
+    frame, editor, card, line, fg, dim = c(.25, .075), c(.22, .095), c(.2, .14), c(.2, .2), c(.25, .88), c(.2, .6)
+    colors = {
+        "editor.background": editor, "editorGutter.background": editor, "editor.lineHighlightBackground": card + "80",
+        "editor.selectionBackground": a + "55", "editorCursor.foreground": a, "editorLineNumber.activeForeground": a,
+        "editorGroupHeader.tabsBackground": frame, "tab.inactiveBackground": frame, "tab.activeBackground": editor,
+        "tab.activeBorderTop": a, "tab.border": frame,
+        "sideBar.background": frame, "sideBarSectionHeader.background": frame, "activityBar.background": frame,
+        "activityBar.foreground": a, "activityBarBadge.background": a, "titleBar.activeBackground": frame,
+        "titleBar.inactiveBackground": frame, "statusBar.background": frame, "statusBar.noFolderBackground": frame,
+        "statusBarItem.remoteBackground": a, "panel.background": frame, "terminal.background": frame,
+        "input.background": card, "dropdown.background": card, "quickInput.background": card,
+        "list.activeSelectionBackground": a + "55", "list.hoverBackground": card, "focusBorder": a + "aa",
+        "button.background": a, "progressBar.background": a, "textLink.foreground": a,
+        "badge.background": a, "scrollbarSlider.background": line + "80", "widget.border": line,
+        "foreground": fg, "descriptionForeground": dim,
+    }
+    try:
+        text = open(path, encoding="utf-8").read()
+        data = _jsonc_load(text)
+    except Exception as e:
+        log(f"VS Code settings not touched (could not read them safely): {e}")
+        return
+    merged = dict(data.get("workbench.colorCustomizations") or {})
+    merged.update(colors)
+    if merged == data.get("workbench.colorCustomizations"):
+        return
+    backup = path + ".chromatia-backup"
+    if not os.path.exists(backup):
+        with open(backup, "w", encoding="utf-8") as f:
+            f.write(text)
+    new = _set_json_key(text, "workbench.colorCustomizations", merged)
+    _jsonc_load(new)                                  # sanity check before writing
+    with open(path + ".tmp", "w", encoding="utf-8") as f:
+        f.write(new)
+    os.replace(path + ".tmp", path)
+
+
 def frame_color(rgb):
     h, _l, _s = colorsys.rgb_to_hls(*(c / 255 for c in rgb))
     r, g, b = colorsys.hls_to_rgb(h, LIGHT, SAT)
@@ -402,6 +528,7 @@ def main():
             log(out)
     apply_system_accent(acc)
     write_konsole(acc)
+    write_vscode(acc)
     go = "".join(
         f'var d=desktopById({cid});d.currentConfigGroup=["Wallpaper","{OWN}","General"];'
         f'd.writeConfig("SwitchGo",{json.dumps(vals["Image"])});'

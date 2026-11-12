@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.0
+- **VS Code follows the wallpaper**: Chromatia sets workbench.colorCustomizations in your VS Code settings (only that key is touched, comments stay, a backup is kept as settings.json.chromatia-backup). Switch it off in Settings → Colors → Apps.
+
 ## 1.2.0
 - **Terminal colors**: Konsole gets a "Chromatia" color scheme and profile that follow the wallpaper too (Settings → Colors → Apps). New Konsole windows use the current colors.
 

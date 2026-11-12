@@ -59,7 +59,7 @@ KCM.SimpleKCM {
 
         QQC2.CheckBox {
             Kirigami.FormData.label: "Apps:"
-            text: "Terminal (Konsole) uses the colors too"
+            text: "Terminal (Konsole) and VS Code use the colors too"
             checked: page.cfg_appColors
             onToggled: page.cfg_appColors = checked
         }
@@ -68,7 +68,7 @@ KCM.SimpleKCM {
             wrapMode: Text.Wrap
             font: Kirigami.Theme.smallFont
             opacity: 0.7
-            text: "Adds the color scheme and profile \"Chromatia\" to Konsole and makes it the default (only if you have no default profile yet). New Konsole windows pick up the colors."
+            text: "Konsole: adds the color scheme and profile \"Chromatia\" (made the default only if you have none). VS Code: sets workbench.colorCustomizations in your settings (a backup is kept next to the file)."
         }
     }
 
