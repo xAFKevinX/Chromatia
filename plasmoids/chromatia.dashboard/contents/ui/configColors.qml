@@ -12,6 +12,7 @@ KCM.SimpleKCM {
     property int cfg_accentMode
     property string cfg_fixedAccent
     property bool cfg_systemAccent
+    property bool cfg_appColors
 
     Kirigami.FormLayout {
         QQC2.RadioButton {
@@ -54,6 +55,20 @@ KCM.SimpleKCM {
             font: Kirigami.Theme.smallFont
             opacity: 0.7
             text: "Tints folder icons, highlights and other apps. Turn it off if an Electron app crashes when the color changes."
+        }
+
+        QQC2.CheckBox {
+            Kirigami.FormData.label: "Apps:"
+            text: "Terminal (Konsole) uses the colors too"
+            checked: page.cfg_appColors
+            onToggled: page.cfg_appColors = checked
+        }
+        QQC2.Label {
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 22
+            wrapMode: Text.Wrap
+            font: Kirigami.Theme.smallFont
+            opacity: 0.7
+            text: "Adds the color scheme and profile \"Chromatia\" to Konsole and makes it the default (only if you have no default profile yet). New Konsole windows pick up the colors."
         }
     }
 

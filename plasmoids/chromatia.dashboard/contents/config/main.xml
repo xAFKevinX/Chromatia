@@ -15,6 +15,7 @@
     <entry name="hiddenInputs" type="String"><default>[]</default></entry>
     <entry name="deviceNames" type="String"><default>{}</default></entry>
     <entry name="systemAccent" type="Bool"><default>true</default></entry>
+    <entry name="appColors" type="Bool"><default>true</default></entry>
     <entry name="accentMode" type="Int"><default>0</default></entry>
     <entry name="fixedAccent" type="String"><default>#7c6cf0</default></entry>
   </group>

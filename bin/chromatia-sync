@@ -156,6 +156,47 @@ def apply_system_accent(rgb):
                    capture_output=True, timeout=10)
 
 
+def write_konsole(rgb):
+    """Konsole color scheme + profile "Chromatia" in the wallpaper's colors (Settings → Colors)."""
+    if setting("appColors", "true").lower() in ("false", "0", "no"):
+        return
+    h, _l, _s = colorsys.rgb_to_hls(*(c / 255 for c in rgb))
+
+    def col(hue, sat, light):
+        r, g, b = colorsys.hls_to_rgb(hue % 1.0, light, sat)
+        return f"{round(r * 255)},{round(g * 255)},{round(b * 255)}"
+    acc = ",".join(str(c) for c in rgb)
+    # ANSI hues, nudged a little toward the accent so everything feels related
+    hues = {1: 0.99, 2: 0.33, 3: 0.12, 4: 0.6, 5: 0.83, 6: 0.5}
+    lines = ["[General]", "Description=Chromatia", "Opacity=1", "Blur=false", "",
+             "[Background]", f"Color={col(h, 0.25, 0.075)}", "[BackgroundIntense]", f"Color={col(h, 0.25, 0.11)}",
+             "[BackgroundFaint]", f"Color={col(h, 0.25, 0.075)}",
+             "[Foreground]", f"Color={col(h, 0.25, 0.88)}", "[ForegroundIntense]", f"Color={col(h, 0.35, 0.96)}",
+             "[ForegroundFaint]", f"Color={col(h, 0.15, 0.62)}",
+             "[Color0]", f"Color={col(h, 0.2, 0.17)}", "[Color0Intense]", f"Color={col(h, 0.2, 0.35)}",
+             "[Color0Faint]", f"Color={col(h, 0.2, 0.12)}",
+             "[Color7]", f"Color={col(h, 0.2, 0.78)}", "[Color7Intense]", f"Color={col(h, 0.3, 0.93)}",
+             "[Color7Faint]", f"Color={col(h, 0.15, 0.55)}"]
+    closest = min(hues, key=lambda k: min(abs(hues[k] - h), 1 - abs(hues[k] - h)))
+    for n, base in hues.items():
+        hue = base + ((h - base + 0.5) % 1.0 - 0.5) * 0.15
+        normal = acc if n == closest else col(hue, 0.6, 0.62)
+        lines += [f"[Color{n}]", f"Color={normal}", f"[Color{n}Intense]", f"Color={col(hue, 0.7, 0.72)}",
+                  f"[Color{n}Faint]", f"Color={col(hue, 0.4, 0.45)}"]
+    d = os.path.join(HOME, ".local/share/konsole")
+    os.makedirs(d, exist_ok=True)
+    with open(os.path.join(d, "Chromatia.colorscheme"), "w") as f:
+        f.write("\n".join(lines) + "\n")
+    prof = os.path.join(d, "Chromatia.profile")
+    if not os.path.exists(prof):
+        with open(prof, "w") as f:
+            f.write("[Appearance]\nColorScheme=Chromatia\n\n[General]\nName=Chromatia\nParent=FALLBACK/\n")
+    rc = os.path.join(HOME, ".config/konsolerc")
+    if not read_ini(rc).get("Desktop Entry", "DefaultProfile", fallback=""):
+        subprocess.run(["kwriteconfig6", "--file", "konsolerc", "--group", "Desktop Entry",
+                        "--key", "DefaultProfile", "Chromatia.profile"], capture_output=True, timeout=10)
+
+
 def frame_color(rgb):
     h, _l, _s = colorsys.rgb_to_hls(*(c / 255 for c in rgb))
     r, g, b = colorsys.hls_to_rgb(h, LIGHT, SAT)
@@ -279,7 +320,7 @@ def make_framed(src, out, screen, color):
 
 def fingerprint(walls):
     d = dashboard_settings()
-    extra = [d.get(k, "") for k in ("accentMode", "fixedAccent", "systemAccent")]
+    extra = [d.get(k, "") for k in ("accentMode", "fixedAccent", "systemAccent", "appColors")]
     return json.dumps([sorted((str(k), v[2], v[1] or "") for k, v in walls.items()), extra])
 
 
@@ -360,6 +401,7 @@ def main():
         if out:
             log(out)
     apply_system_accent(acc)
+    write_konsole(acc)
     go = "".join(
         f'var d=desktopById({cid});d.currentConfigGroup=["Wallpaper","{OWN}","General"];'
         f'd.writeConfig("SwitchGo",{json.dumps(vals["Image"])});'

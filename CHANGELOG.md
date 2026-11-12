@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.0
+- **Terminal colors**: Konsole gets a "Chromatia" color scheme and profile that follow the wallpaper too (Settings → Colors → Apps). New Konsole windows use the current colors.
+
 ## 1.1.0
 - **Chromatia Settings**: the gear in the dashboard opens Colors (accent from the wallpaper or a fixed color, KDE accent on/off) and Audio (choose which outputs and microphones the dashboard shows, give them your own names).
 - **Updates**: the dashboard tells you when a new version is out and installs it with one click. Settings → About & Updates shows the version and the changes.
