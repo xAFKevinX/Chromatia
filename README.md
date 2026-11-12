@@ -84,7 +84,8 @@ It installs the widgets, the wallpaper plugin, the window script, two small help
 
 1. **replacing the panels on your primary screen** with the Chromatia layout – answer **Y** for the full look (a backup of your current panels is saved to `~/.local/share/chromatia/backup-*`),
 2. **setting up KZones** (only asked if KZones is installed),
-3. **enabling the bottom-left hot corner** for the application launcher.
+3. **enabling the Magic Lamp animation** – windows minimize into their dock icon,
+4. **enabling the bottom-left hot corner** for the application launcher.
 
 Plasma restarts once at the end – your screen flickers briefly, that's normal.
 
@@ -128,6 +129,15 @@ The wallpaper folder can be changed in the settings of the wallpaper gallery wid
 
 ## Troubleshooting
 
+- **Black screen with only the clock after installing** (versions before November 12, 2026, on accounts without a wallpaper set): your panels are fine, Plasma was waiting for the wallpaper. Press **Ctrl+Alt+T** to open a terminal and run
+  ```bash
+  cd ~/Chromatia && git pull && ./install.sh
+  ```
+  If no terminal opens: press **Ctrl+Alt+F3**, log in, run
+  ```bash
+  cd ~/Chromatia && git pull && kpackagetool6 --type Plasma/Wallpaper --upgrade wallpaper/chromatia.wallpaper && systemctl --user restart plasma-plasmashell
+  ```
+  then go back to your desktop with **Ctrl+Alt+F2** (or F1). Sorry about that!
 - **Colors don't change** – check the service: `systemctl --user status chromatia-sync.path`, run `chromatia-sync` once by hand and look at its output.
 - **An Electron app crashes when the accent changes** – that comes from KDE's GTK settings sync (kded module *gtkconfig*). Disable it or set `SystemAccent=false`.
 - **Video wallpaper stays black** – make sure the Qt Multimedia FFmpeg backend is installed.

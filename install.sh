@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Chromatia installer – KDE Plasma 6 (Wayland)
 # Installs the widgets, the wallpaper plugin, the helper scripts and services.
-# Optional steps (panel layout, KZones tweaks, hot corner) ask before touching anything.
+# Optional steps (panel layout, KZones tweaks, minimize animation, hot corner) ask before touching anything.
 set -euo pipefail
 
 cd "$(dirname "$(readlink -f "$0")")"
@@ -121,6 +121,13 @@ EOF
 else
     echo "   KZones is not installed. Optional: System Settings → Window Management →"
     echo "   KWin Scripts → Get New → \"KZones\", then run ./install.sh again."
+fi
+
+# ---------------------------------------------------------------- minimize animation
+echo
+if ask "Windows minimize into the dock with the Magic Lamp animation?"; then
+    kwriteconfig6 --file kwinrc --group Plugins --key magiclampEnabled true
+    kwriteconfig6 --file kwinrc --group Plugins --key squashEnabled false
 fi
 
 # ---------------------------------------------------------------- hot corner
