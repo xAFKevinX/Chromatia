@@ -6,7 +6,7 @@ Pick a wallpaper and everything follows: the frame around the screen, the island
 the dashboard, the desktop clock, folder icons and the system accent color. Built from plain
 Plasma parts (widgets, a wallpaper plugin, KWin scripts) — no extra shell, nothing replaces Plasma.
 
-> 📹 Preview: *add your screenshot or video here* (e.g. `docs/preview.mp4`)
+https://github.com/user-attachments/assets/17dc0145-0b8f-4d3d-8fab-c6801b7a00a2
 
 > 🤖 **Disclaimer:** Chromatia was made with the help of [Claude](https://claude.ai), an AI assistant by Anthropic.
 > I came up with the look, decided what goes in and tested everything on my own desktop –
