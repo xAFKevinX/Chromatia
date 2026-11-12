@@ -9,6 +9,7 @@ var BAR_COLORIZER = {"panel":{"normal":{"enabled":true,"blurBehind":false,"backg
 var EDGE_COLORIZER = JSON.parse(JSON.stringify(BAR_COLORIZER));
 EDGE_COLORIZER.widgets.normal.enabled = false;
 var BLANK_ICON = "@HOME@/.local/share/chromatia/blank.svg";
+var FIRST_WALLPAPER = "@WALL@";      // set by install.sh, may be empty
 
 var primary = 0;
 panels().forEach(function (p) { if (p.screen === primary) p.remove(); });
@@ -77,6 +78,7 @@ desktops().forEach(function (d) {
     d.wallpaperPlugin = "chromatia.wallpaper";
     d.currentConfigGroup = ["Wallpaper", "chromatia.wallpaper", "General"];
     d.writeConfig("VisualizerEnabled", d.screen === primary);
+    if (!d.readConfig("Image") && FIRST_WALLPAPER) d.writeConfig("Image", "file://" + FIRST_WALLPAPER);
     if (d.screen === primary) {
         var hasClock = d.widgets().some(function (w) { return w.type === "chromatia.clock"; });
         if (!hasClock) d.addWidget("chromatia.clock", 16, 16, 432, 144);

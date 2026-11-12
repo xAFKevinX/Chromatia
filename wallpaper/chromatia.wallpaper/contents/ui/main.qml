@@ -33,7 +33,27 @@ WallpaperItem {
     readonly property string cfgGo: root.configuration.SwitchGo
     onCfgImageChanged: showImage(cfgImage)
     onCfgGoChanged: tryGo()
-    Component.onCompleted: { root.loading = true; refreshDesk(); imgA.live = true; imgA.source = root.configuration.Image; }
+    Component.onCompleted: {
+        refreshDesk();
+        imgA.live = true;
+        if (root.configuration.Image) {
+            root.loading = true;
+            imgA.source = root.configuration.Image;
+        }
+        // Never block Plasma's startup: Plasma waits until the wallpaper reports "loaded".
+        // Without an image (fresh install) or with a broken file we report "done" right away.
+    }
+    Timer { interval: 5000; running: root.loading; onTriggered: root.loading = false }   // safety net
+
+    // Fallback when no wallpaper is set or it fails to load: soft gradient in the accent color
+    Rectangle {
+        anchors.fill: parent
+        z: -1
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: Qt.hsla(Math.max(0, root.accent.hslHue), 0.35, 0.22, 1) }
+            GradientStop { position: 1.0; color: Qt.hsla(Math.max(0, root.accent.hslHue), 0.30, 0.08, 1) }
+        }
+    }
 
     function showImage(src) {
         if (!src) return;

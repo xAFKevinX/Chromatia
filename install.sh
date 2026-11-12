@@ -56,7 +56,15 @@ install -m 644 systemd/chromatia-sync.service systemd/chromatia-sync.path "$HOME
 install -m 644 layout/blank.svg "$DATA/blank.svg"
 [[ -f "$HOME/.config/chromatia/chromatia.conf" ]] || printf '[General]\n# false: never change the KDE system accent color\nSystemAccent=true\n' > "$HOME/.config/chromatia/chromatia.conf"
 pictures=$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures")
-mkdir -p "$pictures/Wallpapers"
+gallery="$pictures/Wallpapers"
+mkdir -p "$gallery"
+# a first wallpaper so the desktop never starts empty: the first file in the gallery,
+# otherwise KDE's default wallpaper (copied into the gallery so it shows up there too)
+first=$(find "$gallery" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.mp4' -o -iname '*.webm' \) | sort | head -n1)
+if [[ -z "$first" ]]; then
+    def=$(ls /usr/share/wallpapers/Next/contents/images_dark/*.png /usr/share/wallpapers/Next/contents/images/*.png 2>/dev/null | sort -V | tail -n1)
+    if [[ -n "$def" ]]; then cp "$def" "$gallery/plasma-default.png"; first="$gallery/plasma-default.png"; fi
+fi
 systemctl --user daemon-reload
 systemctl --user enable --now chromatia-sync.path >/dev/null 2>&1
 
@@ -75,7 +83,7 @@ if ask "Apply the Chromatia panel layout?"; then
         mkdir -p "$backup"
         cp "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" "$HOME/.config/plasmashellrc" "$backup/" 2>/dev/null || true
         echo "   backup of your current layout: $backup"
-        plasma "$(sed "s|@HOME@|$HOME|g" layout/layout.js)"
+        plasma "$(sed -e "s|@HOME@|$HOME|g" -e "s|@WALL@|${first:-}|g" layout/layout.js)"
     fi
 fi
 
