@@ -350,12 +350,12 @@ def write_vscode(rgb):
     os.replace(path + ".tmp", path)
 
 
-def colors_script(acc, wall=""):
+def colors_script(acc, wall="", launcher=True):
     """Plasma script: write the colors into all Chromatia widgets, Panel Colorizer and the
     wallpaper plugin. Only writes what changed (otherwise the path unit would loop)."""
     h = hue(acc)
     cols = {"panelBg": hexc(tone(h, 0.25, 0.075)), "widgetBg": hexc(tone(h, 0.20, 0.17)), "fg": hexc(tone(h, 0.55, 0.85))}
-    return ("var ACC=%s, C=%s, WALL=%s, n=0;" % (json.dumps(hexc(acc)), json.dumps(cols), json.dumps(wall)) + """
+    return ("var ACC=%s, C=%s, WALL=%s, LB=%s, n=0;" % (json.dumps(hexc(acc)), json.dumps(cols), json.dumps(wall), json.dumps(launcher)) + """
 function setc(o, hex){ if(!o) return; o.enabled=true; o.sourceType=0; o.custom=hex; o.alpha=1;
   o.lightnessEnabled=false; o.saturationEnabled=false; }
 panels().forEach(function(p){ p.widgets().forEach(function(w){
@@ -363,6 +363,7 @@ panels().forEach(function(p){ p.widgets().forEach(function(w){
   if (w.type.indexOf("chromatia.")==0) {
     if (w.readConfig("accentColor")!=ACC){ w.writeConfig("accentColor",ACC); n++; }
     if (WALL && w.type=="chromatia.workspaces" && w.readConfig("wallpaper")!=WALL){ w.writeConfig("wallpaper",WALL); n++; }
+    if (w.type=="chromatia.workspaces" && String(w.readConfig("launcherButton"))!=String(LB)){ w.writeConfig("launcherButton",LB); n++; }
   } else if (w.type=="luisbocanegra.panel.colorizer") {
     var g; try { g=JSON.parse(w.readConfig("globalSettings")); } catch(e) { return; }
     var before=JSON.stringify(g);
@@ -464,7 +465,7 @@ def make_framed(src, out, screen, color):
 def fingerprint(walls):
     d = dashboard_settings()
     extra = [d.get(k, "") for k in ("accentMode", "fixedAccent", "systemAccent", "appColors", "chromatiaPopups",
-                                         "pauseWhenCovered", "pauseWhenTiled")]
+                                         "pauseWhenCovered", "pauseWhenTiled", "launcherButton")]
     return json.dumps([sorted((str(k), v[2], v[1] or "") for k, v in walls.items()), extra])
 
 
@@ -553,7 +554,7 @@ def main():
         f'var d=desktopById({cid});d.currentConfigGroup=["Wallpaper","{OWN}","General"];'
         f'd.writeConfig("SwitchGo",{json.dumps(vals["Image"])});'
         for cid, vals in own.items())
-    out = plasma_eval(colors_script(acc, framed.get(0, "")) + go)
+    out = plasma_eval(colors_script(acc, framed.get(0, ""), enabled("launcherButton")) + go)
     if out:
         log(out)
     # remember what we just wrote (our own writes trigger the path unit again)

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.1
+- **Launcher button**: a grid button at the left end of the bar opens the app launcher (the same one as the bottom-left hot corner). New settings page **Bar** in Chromatia Settings to hide it. It is on by default.
+- **Wallpaper gallery**: a folder button at the top right opens your wallpaper folder in the file manager.
+- "1 wallpaper" instead of "1 wallpapers".
+
 ## 1.5.0
 - **Squiggly progress bar** (Android style): the media progress is a gently moving wave in your accent color. It flattens when you pause. Click or drag on it to seek.
 - **New Dashboard layout**: clock and date sit compactly above the calendar, so the media card gets more room. The cat now lies next to the player controls, and the stats show VRAM too.

@@ -4,5 +4,6 @@
   <group name="General">
     <entry name="accentColor" type="String"><default></default></entry>
     <entry name="wallpaper" type="String"><default></default></entry>
+    <entry name="launcherButton" type="Bool"><default>true</default></entry>
   </group>
 </kcfg>

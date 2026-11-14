@@ -1,6 +1,7 @@
 // Workspace pills – virtual desktops, Caelestia style.
 // Every desktop is a numbered pill, the active one wider and in the
 // accent color. Click switches, the mouse wheel scrolls through them.
+// Optional launcher button in front (Chromatia Settings → Bar, passed on by chromatia-sync).
 
 import QtQuick
 import QtQuick.Layouts
@@ -86,6 +87,32 @@ PlasmoidItem {
             id: row
             anchors.centerIn: parent
             spacing: Math.round(root.pillH * 0.25)
+
+            // application launcher: opens the same launcher as the bottom-left hot corner
+            Rectangle {
+                id: launcher
+                visible: Plasmoid.configuration.launcherButton
+                width: root.pillH; height: root.pillH
+                radius: height / 2
+                anchors.verticalCenter: parent.verticalCenter
+                color: launchMouse.containsMouse ? root.accent : Qt.alpha(Kirigami.Theme.textColor, 0.10)
+                Behavior on color { ColorAnimation { duration: 150 } }
+                Kirigami.Icon {
+                    anchors.centerIn: parent
+                    width: Math.round(root.pillH * 0.6); height: width
+                    source: "view-app-grid-symbolic"
+                    isMask: true
+                    color: launchMouse.containsMouse ? "white" : Qt.alpha(Kirigami.Theme.textColor, 0.85)
+                }
+                MouseArea {
+                    id: launchMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.call("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "activateLauncherMenu", "()", [])
+                }
+            }
+            Item { visible: launcher.visible; width: Math.round(root.pillH * 0.15); height: 1 }   // a little extra gap
 
             Repeater {
                 model: vd.desktopIds

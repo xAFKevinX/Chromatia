@@ -182,9 +182,35 @@ PlasmoidItem {
                             anchors.left: title.right
                             anchors.leftMargin: 8
                             anchors.baseline: title.baseline
-                            text: folderModel.count + " wallpapers"
+                            text: folderModel.count + (folderModel.count === 1 ? " wallpaper" : " wallpapers")
                             color: root.cDim
                             font.pixelSize: 12
+                        }
+                        // open the wallpaper folder in the file manager
+                        Rectangle {
+                            width: 32; height: 32
+                            radius: width / 2
+                            x: root.fullW - width - 16
+                            anchors.verticalCenter: title.verticalCenter
+                            color: folderMouse.containsMouse ? root.cCard2 : "transparent"
+                            Behavior on color { ColorAnimation { duration: 150 } }
+                            Kirigami.Icon {
+                                anchors.centerIn: parent
+                                width: 18; height: 18
+                                source: "folder-open-symbolic"
+                                isMask: true
+                                color: folderMouse.containsMouse ? root.accent : root.cText
+                            }
+                            MouseArea {
+                                id: folderMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: Qt.openUrlExternally(root.folderUrl)
+                            }
+                            QQC2.ToolTip.text: "Open the wallpaper folder"
+                            QQC2.ToolTip.visible: folderMouse.containsMouse
+                            QQC2.ToolTip.delay: 600
                         }
 
                         FolderListModel {

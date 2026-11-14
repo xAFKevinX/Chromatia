@@ -13,6 +13,11 @@ ConfigModel {
         source: "configWallpaper.qml"
     }
     ConfigCategory {
+        name: "Bar"
+        icon: "view-app-grid-symbolic"
+        source: "configBar.qml"
+    }
+    ConfigCategory {
         name: "Audio"
         icon: "audio-volume-high"
         source: "configAudio.qml"

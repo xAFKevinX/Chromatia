@@ -9,6 +9,7 @@
     <entry name="lastTab" type="Int"><default>0</default></entry>
     <entry name="waveMedia" type="Bool"><default>true</default></entry>
     <entry name="waveVolume" type="Bool"><default>true</default></entry>
+    <entry name="launcherButton" type="Bool"><default>true</default></entry>
     <entry name="aliases" type="String"><default>[]</default></entry>
     <!-- Chromatia Settings -->
     <entry name="hiddenOutputs" type="String"><default>[]</default></entry>

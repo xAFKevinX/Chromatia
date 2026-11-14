@@ -117,6 +117,7 @@ git pull
 |---|---|
 | Left edge, middle | wallpaper gallery |
 | Top edge, middle | dashboard (tabs: Dashboard · Audio · System · Notes · Notifications) |
+| Grid button (bar, far left) | application launcher (hide it in Chromatia Settings → Bar) |
 | Bottom left pills | click: switch · `+`: new desktop · right-click: remove · scroll: switch · hover: preview |
 | Dock | click: activate / minimize / cycle windows · middle-click: new window · right-click: pin, close |
 | Dog button | minimize all windows · click again: bring exactly those back |
