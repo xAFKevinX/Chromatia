@@ -1,4 +1,4 @@
-// Chromatia Settings – Audio: which devices the dashboard shows, and their names
+// Chromatia Settings – Audio: wavy lines, which devices the dashboard shows, and their names
 import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
@@ -54,6 +54,19 @@ ConfigPage {
     ColumnLayout {
         spacing: Kirigami.Units.largeSpacing
 
+        Kirigami.Heading { text: "Wavy lines"; level: 3 }
+        QQC2.CheckBox {
+            text: "Media progress (Dashboard and Audio tab)"
+            checked: page.cfg_waveMedia
+            onToggled: page.cfg_waveMedia = checked
+        }
+        QQC2.CheckBox {
+            text: "Volume sliders in the Audio tab"
+            checked: page.cfg_waveVolume
+            onToggled: page.cfg_waveVolume = checked
+        }
+
+        Kirigami.Heading { text: "Devices"; level: 3; Layout.topMargin: Kirigami.Units.largeSpacing }
         QQC2.Label {
             Layout.fillWidth: true
             wrapMode: Text.Wrap

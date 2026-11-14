@@ -6,6 +6,8 @@ KCM.SimpleKCM {
     property string cfg_accentColor; property string cfg_accentColorDefault
     property string cfg_notes; property string cfg_notesDefault
     property int cfg_lastTab; property int cfg_lastTabDefault
+    property bool cfg_waveMedia; property bool cfg_waveMediaDefault
+    property bool cfg_waveVolume; property bool cfg_waveVolumeDefault
     property string cfg_aliases; property string cfg_aliasesDefault
     property string cfg_hiddenOutputs; property string cfg_hiddenOutputsDefault
     property string cfg_hiddenInputs; property string cfg_hiddenInputsDefault

@@ -23,7 +23,7 @@ https://github.com/user-attachments/assets/17dc0145-0b8f-4d3d-8fab-c6801b7a00a2
 - **Island bar** – workspaces | dock | tray, clock and a kawaii *show desktop* dog.
 - **Dock** – apps grouped, live window previews (also for minimized windows), magic-lamp minimize target, pin/unpin, middle-click for a new window.
 - **Workspace pills** – numbered pills with a live preview of each desktop, `+` to add, right-click to remove, scroll to switch.
-- **Dashboard** – slides down from the top edge: clock with a playing cat, calendar, media player with a round visualizer, sleep inhibitor, CPU/GPU/RAM, an audio mixer (devices and per-app volume), system rings, notes and all your notifications.
+- **Dashboard** – slides down from the top edge: clock, calendar, media player with a round visualizer, squiggly progress bar and a playing cat, sleep inhibitor, CPU/GPU/RAM/VRAM, an audio mixer (now playing, devices and per-app volume, with wavy sliders), system rings, notes and all your notifications.
 - **Notifications** – slide out of the frame at the top right; a glowing pill in the notch shows what you haven't read yet.
 - **Wallpaper gallery** – slides out of the left screen edge; click a picture or video to set it on all screens.
 - **Big desktop clock** in the accent color.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.0
+- **Squiggly progress bar** (Android style): the media progress is a gently moving wave in your accent color. It flattens when you pause. Click or drag on it to seek.
+- **New Dashboard layout**: clock and date sit compactly above the calendar, so the media card gets more room. The cat now lies next to the player controls, and the stats show VRAM too.
+- The calendar only shows as many weeks as the month needs.
+- **Audio tab**: a "Now playing" bar with cover, title, controls and the wavy progress. The volume sliders are wavy too: flat when muted, moving while sound is playing.
+- Chromatia Settings → Audio → **Wavy lines**: switch the waves on or off, separately for media progress and volume sliders. Off gives plain straight bars.
+
 ## 1.4.2
 - **Video wallpapers also pause when windows together fill the screen**, e.g. two side by side. New settings page **Wallpaper** (Chromatia Settings) to switch this and the pause for maximized windows on or off, for example if you use transparent windows.
 - The visualizer bars on the wallpaper pause too while they are hidden behind windows.

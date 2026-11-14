@@ -55,6 +55,15 @@ PlasmoidItem {
     Mpris.Mpris2Model { id: mpris }
     readonly property var player: mpris.currentPlayer
     readonly property bool playing: !!player && player.playbackStatus === Mpris.PlaybackStatus.Playing
+    // track position: Plasma only refreshes it on request, once per second while a player tab is open
+    readonly property real progress: player && player.length > 0 ? player.position / player.length : 0
+    function timeText(f) { return Qt.locale("en_US").toString(now, f); }
+    readonly property bool waveMedia: Plasmoid.configuration.waveMedia      // wavy media progress (settings → Audio)
+    readonly property bool waveVolume: Plasmoid.configuration.waveVolume    // wavy volume sliders
+    readonly property bool mediaVisible: reveal > 0.5 && (tab === 0 || tab === 1)
+    Timer { interval: 1000; repeat: true; triggeredOnStart: true; running: root.mediaVisible && !!root.player; onTriggered: root.player.updatePosition() }
+    function fmt(us) { const s = Math.max(0, Math.floor(us / 1e6)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+    function seekTo(v) { if (player && player.canSeek && player.length > 0) player.position = v * player.length; }
 
     Sensors.Sensor { id: sCpu;   sensorId: "cpu/all/usage";                updateRateLimit: 1000; enabled: root.isOpen }
     Sensors.Sensor { id: sCpuT;  sensorId: "cpu/all/averageTemperature";   updateRateLimit: 2000; enabled: root.isOpen }
@@ -551,247 +560,61 @@ PlasmoidItem {
                             currentIndex: root.tab
 
                             // ===== Dashboard =====
+                            // clock above the calendar on the left, media and stats get the rest
                             RowLayout {
                                 spacing: 12
-
-                                // clock and date
-                                Rectangle {
-                                    Layout.preferredWidth: 220
+                                ColumnLayout {
+                                    Layout.fillWidth: false
+                                    Layout.preferredWidth: 250
                                     Layout.fillHeight: true
-                                    radius: 20
-                                    color: root.cCard
-
-                                    Column {
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                        y: 30
-                                        spacing: 4
-                                        Text {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            text: Qt.locale("en_US").toString(root.now, "hh:mm")
-                                            color: root.cText
-                                            font.pixelSize: 62
-                                            font.bold: true
-                                        }
-                                        Rectangle {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            width: 40; height: 4; radius: 2
-                                            color: root.accent
-                                        }
-                                        Item { width: 1; height: 4 }
-                                        Text {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            text: Qt.locale("en_US").toString(root.now, "dddd")
-                                            color: root.cAccentSoft
-                                            font.pixelSize: 18
-                                            font.bold: true
-                                        }
-                                        Text {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            text: Qt.locale("en_US").toString(root.now, "d MMMM yyyy")
-                                            color: root.cDim
-                                            font.pixelSize: 14
-                                        }
-                                    }
-                                    // playing cat: "Cat playing animation" by Abdul Latif (LottieFiles, Lottie Simple License)
-                                    AnimatedImage {
-                                        source: Qt.resolvedUrl("../images/cat-playing.webp")
-                                        width: 200; height: 63
-                                        fillMode: Image.PreserveAspectFit
-                                        playing: root.reveal > 0
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                        anchors.bottom: parent.bottom
-                                        anchors.bottomMargin: 14
-                                    }
-                                }
-
-                                // calendar
-                                Rectangle {
-                                    Layout.preferredWidth: 236
-                                    Layout.fillHeight: true
-                                    radius: 20
-                                    color: root.cCard
-
-                                    readonly property int year: root.now.getFullYear()
-                                    readonly property int month: root.now.getMonth()
-                                    readonly property int offset: (new Date(year, month, 1).getDay() + 6) % 7
-                                    readonly property int days: new Date(year, month + 1, 0).getDate()
-
-                                    Text {
-                                        id: monthTitle
-                                        x: 16; y: 14
-                                        text: Qt.locale("en_US").toString(root.now, "MMMM yyyy")
-                                        color: root.cText
-                                        font.pixelSize: 15
-                                        font.bold: true
-                                    }
-                                    Grid {
-                                        id: cal
-                                        anchors.top: monthTitle.bottom
-                                        anchors.topMargin: 10
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                        columns: 7
-                                        rowSpacing: 3
-                                        columnSpacing: 2
-                                        readonly property int cell: 29
-
-                                        Repeater {
-                                            model: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
-                                            Text {
-                                                width: cal.cell; height: 20
-                                                horizontalAlignment: Text.AlignHCenter
-                                                text: modelData
-                                                color: root.cDim
-                                                font.pixelSize: 11
-                                                font.bold: true
-                                            }
-                                        }
-                                        Repeater {
-                                            model: 42
-                                            Rectangle {
-                                                readonly property int day: index - cal.parent.offset + 1
-                                                readonly property bool valid: day >= 1 && day <= cal.parent.days
-                                                readonly property bool today: valid && day === root.now.getDate()
-                                                width: cal.cell; height: 28
-                                                radius: height / 2
-                                                color: today ? root.accent : "transparent"
-                                                Text {
-                                                    anchors.centerIn: parent
-                                                    text: parent.valid ? parent.day : ""
-                                                    color: parent.today ? "white" : root.cText
-                                                    font.pixelSize: 12
-                                                    font.bold: parent.today
-                                                }
+                                    spacing: 12
+                                    Card {
+                                        Layout.fillWidth: true
+                                        Layout.preferredHeight: 96
+                                        Row {
+                                            anchors.centerIn: parent
+                                            spacing: 14
+                                            Text { text: root.timeText("hh:mm"); color: root.cText; font.pixelSize: 50; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
+                                            Column {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                spacing: 3
+                                                Rectangle { width: 28; height: 4; radius: 2; color: root.accent }
+                                                Text { text: root.timeText("dddd"); color: root.cAccentSoft; font.pixelSize: 15; font.bold: true }
+                                                Text { text: root.timeText("d MMMM"); color: root.cDim; font.pixelSize: 12 }
                                             }
                                         }
                                     }
+                                    Card {
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+                                        MonthTitle { id: mt1; x: 16; y: 12 }
+                                        CalendarGrid { cellW: 31; cellH: 21; anchors.top: mt1.bottom; anchors.topMargin: 8; anchors.horizontalCenter: parent.horizontalCenter }
+                                    }
                                 }
-
                                 ColumnLayout {
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
                                     spacing: 12
-
-                                    // media: round cover with a visualizer ring
-                                    Rectangle {
+                                    MediaCard {
                                         Layout.fillWidth: true
-                                        Layout.preferredHeight: 168
-                                        radius: 20
-                                        color: root.cCard
-
-                                        Item {
-                                            id: artBox
-                                            x: 6
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            width: 156; height: 156
-
-                                            VisualizerRing {
-                                                anchors.fill: parent
-                                                values: root.vizValues
-                                                count: 40
-                                                innerRadius: miniArt.width / 2 + 4
-                                                maxLength: 20
-                                                barWidth: 3
-                                                color: root.cAccentSoft
-                                            }
-                                            Kirigami.ShadowedImage {
-                                                id: miniArt
-                                                anchors.centerIn: parent
-                                                width: 88; height: 88
-                                                radius: width / 2
-                                                color: root.cCard2
-                                                source: root.player ? root.player.artUrl : ""
-                                                fillMode: Image.PreserveAspectCrop
-                                                Image {
-                                                    visible: !root.player || !root.player.artUrl
-                                                    anchors.centerIn: parent
-                                                    source: Qt.resolvedUrl("../images/cat.svg")
-                                                    width: 56; height: 48
-                                                    sourceSize.width: 112
-                                                }
-                                            }
-                                        }
-
-                                        Column {
-                                            anchors.left: artBox.right
-                                            anchors.leftMargin: 2
-                                            anchors.right: parent.right
-                                            anchors.rightMargin: 14
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            spacing: 3
-                                            Text {
-                                                width: parent.width
-                                                text: root.player && root.player.track ? root.player.track : "Nothing playing"
-                                                color: root.cText
-                                                font.pixelSize: 14
-                                                font.bold: true
-                                                wrapMode: Text.Wrap
-                                                maximumLineCount: 2
-                                                elide: Text.ElideRight
-                                            }
-                                            Text {
-                                                width: parent.width
-                                                text: root.player ? root.player.artist : ""
-                                                color: root.cDim
-                                                font.pixelSize: 12
-                                                elide: Text.ElideRight
-                                            }
-                                            Row {
-                                                spacing: 6
-                                                topPadding: 8
-                                                MediaButton { icon: "media-skip-backward"; onClicked: root.player && root.player.Previous() }
-                                                MediaButton { icon: root.playing ? "media-playback-pause" : "media-playback-start"; big: true; size: 36; onClicked: root.player && root.player.PlayPause() }
-                                                MediaButton { icon: "media-skip-forward"; onClicked: root.player && root.player.Next() }
-                                            }
-                                        }
+                                        Layout.preferredHeight: 182
+                                        Cat { width: 180; height: 57; anchors.right: parent.right; anchors.bottom: parent.bottom; anchors.margins: 12 }
                                     }
-
-                                    // sleep switch + quick performance
-                                    Rectangle {
+                                    Card {
                                         Layout.fillWidth: true
                                         Layout.fillHeight: true
-                                        radius: 20
-                                        color: root.cCard
-
                                         Column {
                                             anchors.fill: parent
                                             anchors.margins: 12
                                             spacing: 6
-
-                                            Rectangle {
-                                                width: parent.width
-                                                height: 32
-                                                radius: height / 2
-                                                color: root.inhibitCookie >= 0 ? root.accent : (sbMouse.containsMouse ? root.cCard2 : Qt.alpha(root.cCard2, 0.6))
-                                                Behavior on color { ColorAnimation { duration: 160 } }
-                                                Row {
-                                                    anchors.centerIn: parent
-                                                    spacing: 8
-                                                    Kirigami.Icon {
-                                                        source: root.inhibitCookie >= 0 ? "system-suspend-inhibited" : "system-suspend"
-                                                        width: 16; height: 16
-                                                        isMask: true
-                                                        color: root.inhibitCookie >= 0 ? "white" : root.cText
-                                                        anchors.verticalCenter: parent.verticalCenter
-                                                    }
-                                                    Text {
-                                                        text: root.inhibitCookie >= 0 ? "Sleep inhibited" : "Sleep allowed"
-                                                        color: root.inhibitCookie >= 0 ? "white" : root.cText
-                                                        font.pixelSize: 13
-                                                        font.bold: root.inhibitCookie >= 0
-                                                        anchors.verticalCenter: parent.verticalCenter
-                                                    }
-                                                }
-                                                MouseArea {
-                                                    id: sbMouse
-                                                    anchors.fill: parent
-                                                    hoverEnabled: true
-                                                    cursorShape: Qt.PointingHandCursor
-                                                    onClicked: root.toggleStandby()
-                                                }
+                                            SleepPill { width: parent.width }
+                                            Grid {
+                                                columns: 2; columnSpacing: 20; rowSpacing: 2
+                                                Bar { width: 229; label: "CPU"; value: root.num(sCpu) }
+                                                Bar { width: 229; label: "GPU"; value: root.num(sGpu) }
+                                                Bar { width: 229; label: "RAM"; value: root.num(sRam) }
+                                                Bar { width: 229; label: "VRAM"; value: root.num(sVram) }
                                             }
-                                            Bar { label: "CPU"; value: root.num(sCpu) }
-                                            Bar { label: "GPU"; value: root.num(sGpu) }
-                                            Bar { label: "RAM"; value: root.num(sRam) }
                                         }
                                     }
                                 }
@@ -842,9 +665,50 @@ PlasmoidItem {
                                     radius: 20
                                     color: root.cCard
 
+                                    // now playing: cover, title, buttons, wavy progress
+                                    Rectangle {
+                                        id: nowPlaying
+                                        visible: !!root.player
+                                        x: 8; y: 8
+                                        width: parent.width - 16
+                                        height: visible ? 104 : 0
+                                        radius: 14
+                                        color: root.cCard2
+                                        Kirigami.ShadowedImage {
+                                            id: npArt
+                                            x: 12; y: 12
+                                            width: 48; height: 48
+                                            radius: width / 2
+                                            color: root.cCard
+                                            source: root.player ? root.player.artUrl : ""
+                                            fillMode: Image.PreserveAspectCrop
+                                        }
+                                        Column {
+                                            anchors.left: npArt.right; anchors.leftMargin: 12
+                                            anchors.right: npButtons.left; anchors.rightMargin: 8
+                                            anchors.verticalCenter: npArt.verticalCenter
+                                            spacing: 2
+                                            Text { width: parent.width; text: root.player ? root.player.track : ""; color: root.cText; font.pixelSize: 13; font.bold: true; elide: Text.ElideRight }
+                                            Text { width: parent.width; text: root.player ? root.player.artist : ""; color: root.cDim; font.pixelSize: 11; elide: Text.ElideRight }
+                                        }
+                                        Row {
+                                            id: npButtons
+                                            anchors.right: parent.right; anchors.rightMargin: 10
+                                            anchors.verticalCenter: npArt.verticalCenter
+                                            spacing: 2
+                                            MediaButton { icon: "media-skip-backward"; size: 28; onClicked: root.player && root.player.Previous() }
+                                            MediaButton { icon: root.playing ? "media-playback-pause" : "media-playback-start"; big: true; size: 32; onClicked: root.player && root.player.PlayPause() }
+                                            MediaButton { icon: "media-skip-forward"; size: 28; onClicked: root.player && root.player.Next() }
+                                        }
+                                        TimedWave {
+                                            track: root.cCard
+                                            anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
+                                            anchors.leftMargin: 12; anchors.rightMargin: 12; anchors.bottomMargin: 10
+                                        }
+                                    }
                                     SectionTitle {
                                         id: appsTitle
-                                        x: 14; y: 14
+                                        x: 14; y: nowPlaying.visible ? nowPlaying.height + 20 : 14
                                         text: "Apps"
                                     }
                                     ListView {
@@ -951,6 +815,154 @@ PlasmoidItem {
     }
 
     // ---- small building blocks ----
+    component Card: Rectangle { radius: 20; color: root.cCard }
+
+    component MonthTitle: Text { text: root.timeText("MMMM yyyy"); color: root.cText; font.pixelSize: 15; font.bold: true }
+
+    // playing cat: "Cat playing animation" by Abdul Latif (LottieFiles, Lottie Simple License)
+    component Cat: AnimatedImage {
+        source: Qt.resolvedUrl("../images/cat-playing.webp")
+        fillMode: Image.PreserveAspectFit
+        playing: root.reveal > 0
+    }
+
+    // month grid, only as many weeks as the month needs
+    component CalendarGrid: Grid {
+        id: cg
+        property int cellW: 29
+        property int cellH: 28
+        readonly property int year: root.now.getFullYear()
+        readonly property int month: root.now.getMonth()
+        readonly property int offset: (new Date(year, month, 1).getDay() + 6) % 7
+        readonly property int days: new Date(year, month + 1, 0).getDate()
+        columns: 7
+        rowSpacing: 3
+        columnSpacing: 2
+        Repeater {
+            model: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+            Text { width: cg.cellW; height: 18; horizontalAlignment: Text.AlignHCenter; text: modelData; color: root.cDim; font.pixelSize: 11; font.bold: true }
+        }
+        Repeater {
+            model: Math.ceil((cg.offset + cg.days) / 7) * 7
+            Rectangle {
+                readonly property int day: index - cg.offset + 1
+                readonly property bool valid: day >= 1 && day <= cg.days
+                readonly property bool today: valid && day === root.now.getDate()
+                width: cg.cellW; height: cg.cellH
+                radius: height / 2
+                color: today ? root.accent : "transparent"
+                Text {
+                    anchors.centerIn: parent
+                    text: parent.valid ? parent.day : ""
+                    color: parent.today ? "white" : root.cText
+                    font.pixelSize: 12
+                    font.bold: parent.today
+                }
+            }
+        }
+    }
+
+    // round cover with a visualizer ring; title, wavy progress and buttons beside it
+    component MediaCard: Rectangle {
+        id: mc
+        radius: 20
+        color: root.cCard
+        Item {
+            id: artBox
+            x: 6
+            anchors.verticalCenter: parent.verticalCenter
+            width: 156; height: 156
+            VisualizerRing {
+                anchors.fill: parent
+                values: root.vizValues
+                count: 40
+                innerRadius: art.width / 2 + 4
+                maxLength: 20
+                barWidth: 3
+                color: root.cAccentSoft
+            }
+            Kirigami.ShadowedImage {
+                id: art
+                anchors.centerIn: parent
+                width: 88; height: 88
+                radius: width / 2
+                color: root.cCard2
+                source: root.player ? root.player.artUrl : ""
+                fillMode: Image.PreserveAspectCrop
+                Image {
+                    visible: !root.player || !root.player.artUrl
+                    anchors.centerIn: parent
+                    source: Qt.resolvedUrl("../images/cat.svg")
+                    width: 56; height: 48
+                    sourceSize.width: 112
+                }
+            }
+        }
+        Column {
+            x: artBox.x + artBox.width + 2
+            width: mc.width - x - 14
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 3
+            Text {
+                width: parent.width
+                text: root.player && root.player.track ? root.player.track : "Nothing playing"
+                color: root.cText
+                font.pixelSize: 16
+                font.bold: true
+                elide: Text.ElideRight
+            }
+            Text {
+                width: parent.width
+                text: root.player ? root.player.artist : ""
+                color: root.cDim
+                font.pixelSize: 12
+                elide: Text.ElideRight
+            }
+            TimedWave { visible: !!root.player; width: parent.width; height: 26 }
+            Row {
+                spacing: 6
+                topPadding: 8
+                MediaButton { icon: "media-skip-backward"; onClicked: root.player && root.player.Previous() }
+                MediaButton { icon: root.playing ? "media-playback-pause" : "media-playback-start"; big: true; size: 36; onClicked: root.player && root.player.PlayPause() }
+                MediaButton { icon: "media-skip-forward"; onClicked: root.player && root.player.Next() }
+            }
+        }
+    }
+
+    // sleep switch (like Plasma's "Block sleep and screen locking")
+    component SleepPill: Rectangle {
+        readonly property bool on: root.inhibitCookie >= 0
+        height: 32
+        radius: height / 2
+        color: on ? root.accent : (spMouse.containsMouse ? root.cCard2 : Qt.alpha(root.cCard2, 0.6))
+        Behavior on color { ColorAnimation { duration: 160 } }
+        Row {
+            anchors.centerIn: parent
+            spacing: 8
+            Kirigami.Icon {
+                source: parent.parent.on ? "system-suspend-inhibited" : "system-suspend"
+                width: 16; height: 16
+                isMask: true
+                color: parent.parent.on ? "white" : root.cText
+                anchors.verticalCenter: parent.verticalCenter
+            }
+            Text {
+                text: parent.parent.on ? "Sleep inhibited" : "Sleep allowed"
+                color: parent.parent.on ? "white" : root.cText
+                font.pixelSize: 13
+                font.bold: parent.parent.on
+                anchors.verticalCenter: parent.verticalCenter
+            }
+        }
+        MouseArea {
+            id: spMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.toggleStandby()
+        }
+    }
+
     component MediaButton: Rectangle {
         id: mb
         property string icon
@@ -976,6 +988,27 @@ PlasmoidItem {
         }
     }
 
+    // wavy progress with elapsed time left and track length right
+    component TimedWave: Item {
+        property color track: root.cCard2
+        height: 20
+        Text { id: twPos; width: 34; anchors.verticalCenter: parent.verticalCenter; text: root.fmt(root.player ? root.player.position : 0); color: root.cDim; font.pixelSize: 11 }
+        WaveProgress {
+            anchors.left: twPos.right; anchors.right: twLen.left; anchors.leftMargin: 6; anchors.rightMargin: 6
+            anchors.verticalCenter: parent.verticalCenter
+            height: 20
+            value: root.progress
+            playing: root.playing
+            running: root.mediaVisible && parent.visible
+            amplitude: root.waveMedia ? 3 : 0
+            color: root.accent
+            trackColor: parent.track
+            seekable: !!root.player && root.player.canSeek
+            onSeek: v => root.seekTo(v)
+        }
+        Text { id: twLen; width: 34; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; horizontalAlignment: Text.AlignRight; text: root.fmt(root.player ? root.player.length : 0); color: root.cDim; font.pixelSize: 11 }
+    }
+
     component SectionTitle: Text {
         color: root.cText
         font.pixelSize: 14
@@ -988,6 +1021,7 @@ PlasmoidItem {
         property real value: 0          // 0..1
         property bool muted: false
         property bool mic: false
+        property bool moving: false
         signal moved(real v)
         signal muteToggled()
         height: 26
@@ -1009,22 +1043,15 @@ PlasmoidItem {
             anchors.right: pct.left; anchors.rightMargin: 10
             anchors.verticalCenter: parent.verticalCenter
             height: 18
-            Rectangle {
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width; height: 6; radius: 3
-                color: root.cCard2
-                Rectangle {
-                    height: parent.height; radius: 3
-                    width: parent.width * Math.max(0, Math.min(1, vs.shown))
-                    color: vs.muted ? root.cDim : root.accent
-                }
-            }
-            Rectangle {
-                width: 14; height: 14; radius: 7
-                anchors.verticalCenter: parent.verticalCenter
-                x: Math.max(0, Math.min(1, vs.shown)) * (parent.width - width)
-                color: "white"
-                visible: drag.containsMouse || drag.pressed
+            WaveProgress {      // wavy when audible, flat when muted; moves while sound is playing
+                anchors.fill: parent
+                value: vs.shown
+                playing: !vs.muted
+                running: vs.moving
+                seekable: false
+                amplitude: root.waveVolume ? 2.5 : 0; wavelength: 18
+                color: vs.muted ? root.cDim : root.accent
+                trackColor: Qt.alpha(root.cText, 0.14)      // visible on card and on the highlighted default row
             }
             MouseArea {
                 id: drag
@@ -1092,6 +1119,7 @@ PlasmoidItem {
             x: 12; y: 34
             width: parent.width - 24
             mic: dr.mic
+            moving: !dr.mic && model.Default && root.playing && root.reveal > 0.5 && root.tab === 1
             value: model.Volume / 65536
             muted: model.Muted
             onMoved: v => model.PulseObject.volume = Math.round(v * 65536)
@@ -1128,6 +1156,7 @@ PlasmoidItem {
         VolSlider {
             x: 10; y: 30
             width: parent.width - 22
+            moving: root.reveal > 0.5 && root.tab === 1
             value: sr.first ? sr.first.volume / 65536 : 0
             muted: sr.first ? sr.first.muted : false
             onMoved: v => sr.modelData.objs.forEach(o => o.volume = Math.round(v * 65536))
