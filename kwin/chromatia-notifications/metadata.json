@@ -1,0 +1,20 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "xAFKevinX"
+            }
+        ],
+        "Category": "Window Management",
+        "Description": "Hides KDE's notification popups while Chromatia shows its own",
+        "EnabledByDefault": false,
+        "Id": "chromatia-notifications",
+        "License": "MIT",
+        "Name": "Chromatia Notifications",
+        "Version": "1.0",
+        "Website": "https://github.com/xAFKevinX/Chromatia"
+    },
+    "X-Plasma-API": "javascript",
+    "X-Plasma-MainScript": "code/main.js",
+    "KPackageStructure": "KWin/Script"
+}

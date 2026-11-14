@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0
+- **Notifications**: new notifications slide out of the frame at the top right and slide back in after a few seconds (hover to keep them). Buttons and clicks work as usual.
+- A glowing pill in the notch tells you when something is unread, in a signal color that matches your accent without being the same. All notifications are collected in the dashboard's new **Notifications** tab, with do-not-disturb.
+- Settings → Notifications: Chromatia or KDE popups, how long they stay, no popups while a fullscreen app (game, video) is focused, open the Notifications tab first.
+- Updating from an older version keeps KDE's bell in the tray; hide it in the tray settings if you like (Chromatia uses it in the background).
+
 ## 1.3.0
 - **VS Code follows the wallpaper**: Chromatia sets workbench.colorCustomizations in your VS Code settings (only that key is touched, comments stay, a backup is kept as settings.json.chromatia-backup). Switch it off in Settings → Colors → Apps.
 

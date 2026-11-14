@@ -13,6 +13,11 @@ ConfigModel {
         source: "configAudio.qml"
     }
     ConfigCategory {
+        name: "Notifications"
+        icon: "preferences-desktop-notification-bell"
+        source: "configNotifications.qml"
+    }
+    ConfigCategory {
         name: "About & Updates"
         icon: "help-about"
         source: "configAbout.qml"

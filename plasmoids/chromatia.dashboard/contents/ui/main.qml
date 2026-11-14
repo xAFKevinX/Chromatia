@@ -17,6 +17,7 @@ import org.kde.ksysguard.sensors as Sensors
 import org.kde.plasma.private.volume as Vol
 import org.kde.plasma.workspace.dbus
 import org.kde.plasma.plasma5support as P5Support
+import org.kde.notificationmanager as NotificationManager
 
 PlasmoidItem {
     id: root
@@ -33,6 +34,9 @@ PlasmoidItem {
     readonly property color cText: Qt.hsla(hue, 0.55, 0.90, 1)
     readonly property color cDim: Qt.hsla(hue, 0.25, 0.68, 1)
     readonly property color cAccentSoft: Qt.hsla(hue, 0.45, 0.62, 1)
+    // signal colour for unread: split-complement (+150°), brighter; skips the lime/green zone (50–170°)
+    readonly property real alertHue: { const h = (hue + 150 / 360) % 1; return h > 50 / 360 && h < 170 / 360 ? (h < 110 / 360 ? 45 / 360 : 185 / 360) : h; }
+    readonly property color cAlert: Qt.hsla(alertHue, 0.85, 0.70, 1)
 
     // ---- Maße ----
     readonly property int dashW: 800
@@ -149,6 +153,41 @@ PlasmoidItem {
     }
 
     // Lesbare Gerätenamen
+    // ---- Notifications: history for the dashboard tab, popups at the top right ----
+    NotificationManager.Notifications {
+        id: notifHistory
+        showNotifications: true
+        showJobs: false
+        showExpired: true
+        showDismissed: true
+        groupMode: NotificationManager.Notifications.GroupDisabled
+        sortMode: NotificationManager.Notifications.SortByDate
+        sortOrder: Qt.DescendingOrder
+    }
+    NotificationManager.Settings { id: notifSettings; live: true }
+    function toggleDnd() {
+        if (NotificationManager.Server.inhibited) {
+            notifSettings.notificationsInhibitedUntil = undefined;
+            notifSettings.revokeApplicationInhibitions();
+        } else {
+            const d = new Date();
+            d.setFullYear(d.getFullYear() + 1);          // "until I turn it off"
+            notifSettings.notificationsInhibitedUntil = d;
+        }
+        notifSettings.save();
+    }
+    // opening the Notifications tab marks everything as read
+    readonly property bool notifTabOpen: root.tab === 4 && root.reveal > 0.5
+    onNotifTabOpenChanged: if (notifTabOpen) notifHistory.lastRead = new Date()
+    NotificationPopups {
+        dash: root
+        source: notifHistory
+        active: Plasmoid.configuration.chromatiaPopups
+        seconds: Math.max(3, Plasmoid.configuration.popupSeconds)
+        hideInFullscreen: Plasmoid.configuration.hideInFullscreen
+        screenRect: Plasmoid.containment ? Plasmoid.containment.screenGeometry : Qt.rect(0, 0, 1920, 1080)
+    }
+
     // ---- Updates (chromatia-update): check at start and every 6 hours, install only on click ----
     property var update: ({ available: false, installed: "", latest: "", changes: [], error: "" })
     property bool showUpdate: false
@@ -211,8 +250,35 @@ PlasmoidItem {
             onClicked: root.reveal > 0.5 ? rep.close() : rep.open()
         }
 
+        // unread notifications: a glowing pill in the notch, clearly pulsing
+        Item {
+            id: notchPill
+            visible: notifHistory.unreadNotificationsCount > 0 && root.reveal < 0.05
+            anchors.centerIn: parent
+            width: 70; height: Math.min(10, parent.height)
+            Rectangle {            // soft glow behind
+                anchors.centerIn: parent
+                width: parent.width + 16; height: parent.height + 4; radius: height / 2
+                color: root.cAlert
+                opacity: pill.opacity * 0.35
+            }
+            Rectangle {
+                id: pill
+                anchors.fill: parent
+                radius: height / 2
+                color: root.cAlert
+                SequentialAnimation on opacity {
+                    running: notchPill.visible
+                    loops: Animation.Infinite
+                    NumberAnimation { to: 0.25; duration: 800; easing.type: Easing.InOutSine }
+                    NumberAnimation { to: 1.0; duration: 800; easing.type: Easing.InOutSine }
+                }
+            }
+        }
+
         function open() {
             closeTimer.stop();
+            if (!drawer.visible && Plasmoid.configuration.openNotificationsFirst && notifHistory.unreadNotificationsCount > 0) root.tab = 4;   // optional: unread first
             drawer.visible = true;
             anim.stop();
             anim.to = 1; anim.duration = 340; anim.easing.type = Easing.OutQuint;
@@ -314,7 +380,8 @@ PlasmoidItem {
                                     { icon: "view-app-grid-symbolic", name: "Dashboard" },
                                     { icon: "audio-volume-high-symbolic", name: "Audio" },
                                     { icon: "speedometer", name: "System" },
-                                    { icon: "document-edit-symbolic", name: "Notes" }
+                                    { icon: "document-edit-symbolic", name: "Notes" },
+                                    { icon: "notifications-symbolic", name: "Notifications" }
                                 ]
                                 Rectangle {
                                     readonly property bool active: root.tab === index
@@ -341,6 +408,14 @@ PlasmoidItem {
                                             font.bold: parent.parent.active
                                             anchors.verticalCenter: parent.verticalCenter
                                         }
+                                    }
+                                    Rectangle {          // unread notifications
+                                        visible: index === 4 && notifHistory.unreadNotificationsCount > 0 && !parent.active
+                                        anchors.right: parent.right; anchors.top: parent.top
+                                        anchors.rightMargin: 4; anchors.topMargin: 2
+                                        width: 16; height: 16; radius: 8
+                                        color: root.cAlert
+                                        Text { anchors.centerIn: parent; text: Math.min(9, notifHistory.unreadNotificationsCount); color: root.cBase; font.pixelSize: 10; font.bold: true }
                                     }
                                     MouseArea {
                                         id: tabMouse
@@ -836,7 +911,7 @@ PlasmoidItem {
                                 }
                             }
 
-                            // ===== Notizen =====
+                            // ===== Notes =====
                             Rectangle {
                                 radius: 20
                                 color: root.cCard
@@ -871,6 +946,12 @@ PlasmoidItem {
                                     anchors.bottom: parent.bottom
                                     anchors.margins: 14
                                 }
+                            }
+
+                            // ===== Notifications =====
+                            NotificationsPage {
+                                dash: root
+                                history: notifHistory
                             }
                         }
                     }

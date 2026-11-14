@@ -54,6 +54,7 @@ say "Installing wallpaper plugin"
 pkg Plasma/Wallpaper wallpaper/chromatia.wallpaper
 say "Installing KWin script (edge link)"
 pkg KWin/Script kwin/chromatia-edgelink
+pkg KWin/Script kwin/chromatia-notifications
 [[ $UPDATE == 0 ]] && kwriteconfig6 --file kwinrc --group Plugins --key chromatia-edgelinkEnabled true   # keep the user's choice on updates
 
 # ---------------------------------------------------------------- helpers + services

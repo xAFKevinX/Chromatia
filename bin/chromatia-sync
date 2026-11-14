@@ -156,6 +156,18 @@ def apply_system_accent(rgb):
                    capture_output=True, timeout=10)
 
 
+def sync_notification_script():
+    """Chromatia popups on → KWin script hides KDE's popups; off → KDE's popups come back."""
+    want = setting("chromatiaPopups", "true").lower() not in ("false", "0", "no")
+    cur = read_ini(os.path.join(HOME, ".config/kwinrc")).get("Plugins", "chromatia-notificationsEnabled", fallback="")
+    if (cur == "true") == want:
+        return
+    subprocess.run(["kwriteconfig6", "--file", "kwinrc", "--group", "Plugins", "--key",
+                    "chromatia-notificationsEnabled", "true" if want else "false"], capture_output=True, timeout=10)
+    subprocess.run(["qdbus-qt6", "org.kde.KWin", "/KWin", "reconfigure"], capture_output=True, timeout=20)
+    log("Chromatia notification popups " + ("on" if want else "off"))
+
+
 def write_konsole(rgb):
     """Konsole color scheme + profile "Chromatia" in the wallpaper's colors (Settings → Colors)."""
     if setting("appColors", "true").lower() in ("false", "0", "no"):
@@ -446,7 +458,7 @@ def make_framed(src, out, screen, color):
 
 def fingerprint(walls):
     d = dashboard_settings()
-    extra = [d.get(k, "") for k in ("accentMode", "fixedAccent", "systemAccent", "appColors")]
+    extra = [d.get(k, "") for k in ("accentMode", "fixedAccent", "systemAccent", "appColors", "chromatiaPopups")]
     return json.dumps([sorted((str(k), v[2], v[1] or "") for k, v in walls.items()), extra])
 
 
@@ -529,6 +541,7 @@ def main():
     apply_system_accent(acc)
     write_konsole(acc)
     write_vscode(acc)
+    sync_notification_script()
     go = "".join(
         f'var d=desktopById({cid});d.currentConfigGroup=["Wallpaper","{OWN}","General"];'
         f'd.writeConfig("SwitchGo",{json.dumps(vals["Image"])});'

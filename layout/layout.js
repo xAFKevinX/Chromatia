@@ -48,7 +48,10 @@ if (has("org.kde.netspeedWidget")) {
     var ns = bar.addWidget("org.kde.netspeedWidget");
     ns.currentConfigGroup = ["General"]; ns.writeConfig("fontSize", 70);
 }
-bar.addWidget("org.kde.plasma.systemtray");
+var tray = bar.addWidget("org.kde.plasma.systemtray");
+// KDE's bell keeps running (it powers the notifications) but hides in the tray: Chromatia shows them
+tray.currentConfigGroup = ["General"];
+tray.writeConfig("hiddenItems", ["org.kde.plasma.notifications"]);
 bar.addWidget("chromatia.showdesktop");
 var clock = bar.addWidget("org.kde.plasma.digitalclock");
 clock.currentConfigGroup = ["Appearance"];

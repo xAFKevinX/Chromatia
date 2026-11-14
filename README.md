@@ -23,7 +23,8 @@ https://github.com/user-attachments/assets/17dc0145-0b8f-4d3d-8fab-c6801b7a00a2
 - **Island bar** – workspaces | dock | tray, clock and a kawaii *show desktop* dog.
 - **Dock** – apps grouped, live window previews (also for minimized windows), magic-lamp minimize target, pin/unpin, middle-click for a new window.
 - **Workspace pills** – numbered pills with a live preview of each desktop, `+` to add, right-click to remove, scroll to switch.
-- **Dashboard** – slides down from the top edge: clock with a playing cat, calendar, media player with a round visualizer, sleep inhibitor, CPU/GPU/RAM, an audio mixer (devices and per-app volume), system rings and notes.
+- **Dashboard** – slides down from the top edge: clock with a playing cat, calendar, media player with a round visualizer, sleep inhibitor, CPU/GPU/RAM, an audio mixer (devices and per-app volume), system rings, notes and all your notifications.
+- **Notifications** – slide out of the frame at the top right; a glowing pill in the notch shows what you haven't read yet.
 - **Wallpaper gallery** – slides out of the left screen edge; click a picture or video to set it on all screens.
 - **Big desktop clock** in the accent color.
 - **Window snapping (optional, KZones)** – grab a window and a small layout picker slides in at the top (halves, big-left, quarters, thirds).
@@ -115,7 +116,7 @@ git pull
 | Where | What |
 |---|---|
 | Left edge, middle | wallpaper gallery |
-| Top edge, middle | dashboard (tabs: Dashboard · Audio · System · Notes) |
+| Top edge, middle | dashboard (tabs: Dashboard · Audio · System · Notes · Notifications) |
 | Bottom left pills | click: switch · `+`: new desktop · right-click: remove · scroll: switch · hover: preview |
 | Dock | click: activate / minimize / cycle windows · middle-click: new window · right-click: pin, close |
 | Dog button | minimize all windows · click again: bring exactly those back |
