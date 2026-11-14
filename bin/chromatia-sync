@@ -27,7 +27,7 @@ import subprocess
 import sys
 import time
 
-from PIL import Image, ImageDraw
+# Pillow is imported only where images are processed: most runs end at the fingerprint check
 
 HOME = os.path.expanduser("~")
 APPLETSRC = os.path.join(HOME, ".config/plasma-org.kde.plasma.desktop-appletsrc")
@@ -140,6 +140,7 @@ def accent():
 
 def pick_accent(path):
     """A strong, clearly visible color from the image."""
+    from PIL import Image
     im = Image.open(path).convert("RGB").resize((96, 54))
     pal = im.quantize(colors=12, method=Image.Quantize.MEDIANCUT)
     colors = pal.convert("RGB").getcolors(96 * 54) or []
@@ -436,6 +437,7 @@ def desktop_wallpapers():
 
 def make_framed(src, out, screen, color):
     """Bake the frame into a copy of the image (for the stock image plugin)."""
+    from PIL import Image, ImageDraw
     W = round(screen["w"] * screen["scale"])
     H = round(screen["h"] * screen["scale"])
     s = W / screen["w"]
@@ -461,7 +463,8 @@ def make_framed(src, out, screen, color):
 
 def fingerprint(walls):
     d = dashboard_settings()
-    extra = [d.get(k, "") for k in ("accentMode", "fixedAccent", "systemAccent", "appColors", "chromatiaPopups")]
+    extra = [d.get(k, "") for k in ("accentMode", "fixedAccent", "systemAccent", "appColors", "chromatiaPopups",
+                                         "pauseWhenCovered", "pauseWhenTiled")]
     return json.dumps([sorted((str(k), v[2], v[1] or "") for k, v in walls.items()), extra])
 
 
@@ -506,7 +509,8 @@ def main():
             own[cid] = {"Image": "file://" + original,
                         "FrameTop": max(FRAME, sc.get("top", 0)), "FrameBottom": max(FRAME, sc["bottom"]),
                         "FrameLeft": max(FRAME, sc.get("left", 0)), "FrameRight": max(FRAME, sc.get("right", 0)),
-                        "FrameRadius": RADIUS}
+                        "FrameRadius": RADIUS, "PauseWhenCovered": enabled("pauseWhenCovered"),
+                        "PauseWhenTiled": enabled("pauseWhenTiled")}
             framed[idx] = still_of(original) or ""
             continue
         if is_video(original):
@@ -566,6 +570,7 @@ def main():
 
 def make_thumbs(gallery):
     """Small previews (360x200) for the wallpaper panel, only when new or changed."""
+    from PIL import Image
     os.makedirs(THUMBS, exist_ok=True)
     if not os.path.isdir(gallery):
         os.makedirs(gallery, exist_ok=True)

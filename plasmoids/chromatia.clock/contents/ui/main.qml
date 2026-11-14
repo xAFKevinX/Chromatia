@@ -1,4 +1,4 @@
-// Chromatia Desktop-Uhr – große Digitaluhr mit Datum, Farben aus der Akzentfarbe.
+// Chromatia desktop clock – big digital clock with the date, colors from the accent color.
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Effects
@@ -96,7 +96,7 @@ PlasmoidItem {
             }
         }
 
-        // weicher Schatten für Lesbarkeit auf hellen Hintergründen
+        // soft shadow so it stays readable on bright wallpapers
         MultiEffect {
             source: content
             anchors.fill: content

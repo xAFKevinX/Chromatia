@@ -1,4 +1,4 @@
-// Einstellungsseite für „Bild mit Visualizer“ (Rechtsklick Desktop → Hintergrund einrichten).
+// Settings of the Chromatia wallpaper (right-click the desktop → Configure Desktop and Wallpaper).
 import QtQuick
 import QtCore
 import QtQuick.Controls as QQC2

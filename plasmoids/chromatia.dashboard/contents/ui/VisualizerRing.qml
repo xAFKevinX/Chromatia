@@ -1,12 +1,12 @@
-// Ringförmiger Audio-Visualizer: Balken strahlen kreisförmig um ein rundes Bild nach außen.
+// Round audio visualizer: bars radiate outwards around a round picture.
 import QtQuick
 
 Item {
     id: vr
 
-    property var values: []           // 0..1 je Balken
-    property real innerRadius: 80     // Abstand vom Mittelpunkt, an dem die Balken beginnen
-    property real maxLength: 34       // maximale Balkenlänge
+    property var values: []           // 0..1 per bar
+    property real innerRadius: 80     // distance from the center where the bars start
+    property real maxLength: 34       // maximum bar length
     property real minLength: 3
     property real barWidth: 4
     property color color: "white"
@@ -15,7 +15,7 @@ Item {
     Repeater {
         model: vr.count
         Item {
-            // Drehpunkt in der Mitte des Rings
+            // rotate around the center of the ring
             x: vr.width / 2
             y: vr.height / 2
             rotation: index * 360 / vr.count

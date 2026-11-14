@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.2
+- **Video wallpapers also pause when windows together fill the screen**, e.g. two side by side. New settings page **Wallpaper** (Chromatia Settings) to switch this and the pause for maximized windows on or off, for example if you use transparent windows.
+- The visualizer bars on the wallpaper pause too while they are hidden behind windows.
+- Saves power: the dashboard's clock and system sensors only update while the dashboard is open.
+- All code comments are in English now.
+
 ## 1.4.1
 - Fixed: the uninstaller left the notification script behind (KDE's popups stayed hidden afterwards) and kept chromatia-update.
 - Opening Chromatia Settings no longer fills the Plasma log with warnings.

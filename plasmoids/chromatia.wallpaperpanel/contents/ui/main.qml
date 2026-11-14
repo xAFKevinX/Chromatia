@@ -1,9 +1,9 @@
-// Chromatia Hintergrund-Panel – gleitet vom linken Bildschirmrand heraus.
+// Chromatia wallpaper gallery – slides out of the left screen edge.
 //
-// Sitzt in einer dünnen Leiste links, die optisch den linken Rahmen bildet. Fährt die
-// Maus in der Mitte an den linken Rand, gleitet eine Bildergalerie heraus (Ordner aus den
-// Widget-Einstellungen, sonst ~/Pictures/Wallpapers). Ein Klick setzt das Bild auf allen
-// Bildschirmen, chromatia-sync färbt danach alles passend ein.
+// Lives in a thin panel on the left that forms the left part of the frame. When the
+// mouse reaches the middle of the left edge, a gallery slides out (folder from the
+// widget settings, otherwise ~/Pictures/Wallpapers). A click sets the wallpaper on all
+// screens, then chromatia-sync recolors everything to match.
 
 import QtQuick
 import QtQuick.Layouts
@@ -22,7 +22,7 @@ PlasmoidItem {
     preferredRepresentation: fullRepresentation
     Plasmoid.backgroundHints: "NoBackground"
 
-    // ---- Farben (wie Dashboard, Leiste, Rahmen) ----
+    // ---- Colors (like dashboard, bar, frame) ----
     readonly property color accent: (Plasmoid.configuration.accentColor !== "" ? Plasmoid.configuration.accentColor : Kirigami.Theme.highlightColor)
     readonly property real hue: Math.max(0, accent.hslHue)
     readonly property color cBase: Qt.hsla(hue, 0.25, 0.075, 1)
@@ -31,12 +31,12 @@ PlasmoidItem {
     readonly property color cText: Qt.hsla(hue, 0.55, 0.90, 1)
     readonly property color cDim: Qt.hsla(hue, 0.25, 0.68, 1)
 
-    // ---- Maße ----
-    readonly property int fullW: 380         // ausgefahrene Breite (ohne gewölbte Ecken)
-    readonly property int bodyH: 660         // Höhe des Panels
-    readonly property int inv: 24            // gewölbte Ecken am Rahmen (oben/unten links)
-    readonly property int rad: 28            // runde Ecken rechts
-    readonly property int triggerH: 520      // Auslösebereich am linken Rand
+    // ---- Sizes ----
+    readonly property int fullW: 380         // width when open (without the curved corners)
+    readonly property int bodyH: 660         // height of the gallery
+    readonly property int inv: 24            // curved corners at the frame (top/bottom left)
+    readonly property int rad: 28            // round corners on the right
+    readonly property int triggerH: 520      // trigger area at the left edge
 
     property real reveal: 0
 
@@ -48,13 +48,13 @@ PlasmoidItem {
         engine: "executable"
         onNewData: (source, data) => {
             disconnectSource(source);
-            if (source.indexOf(" --thumbs") >= 0) root.thumbRev++;   // neue Vorschauen da: neu laden
+            if (source.indexOf(" --thumbs") >= 0) root.thumbRev++;   // new previews ready: reload
         }
     }
     property int thumbRev: 0
     function shq(t) { return "'" + t.replace(/'/g, "'\\''") + "'"; }
 
-    // Bild setzen: das Skript rahmt es, bestimmt die Akzentfarbe und setzt es genau einmal
+    // set a wallpaper: chromatia-sync picks the accent color and sets it exactly once
     function applyWallpaper(url) {
         Plasmoid.configuration.current = url.toString();
         const path = decodeURIComponent(url.toString().replace("file://", ""));
@@ -136,7 +136,7 @@ PlasmoidItem {
                 readonly property real bw: Math.max(root.rad + 2, root.fullW * root.reveal)
                 readonly property real bh: height
 
-                // Form: links mit gewölbten Ecken am Rahmen, rechts rund
+                // shape: curved corners at the frame on the left, round on the right
                 Shape {
                     anchors.fill: parent
                     preferredRendererType: Shape.CurveRenderer
@@ -156,7 +156,7 @@ PlasmoidItem {
                     }
                 }
 
-                // Inhalt
+                // content
                 Item {
                     x: 0
                     y: root.inv
@@ -242,8 +242,8 @@ PlasmoidItem {
                                         anchors.margins: 3
                                         radius: 11
                                         color: root.cCard
-                                        // Vorschau aus dem Cache; fehlt sie noch, wird nach --thumbs neu geladen.
-                                        // Bilder dürfen solange direkt gezeigt werden, Videos nicht (das kann Image nicht).
+                                        // preview from the cache; if it is missing, it reloads after --thumbs.
+                                        // Until then images are shown directly, videos are not (Image can't show them).
                                         property bool fallback: false
                                         readonly property int rev: root.thumbRev
                                         onRevChanged: fallback = false
@@ -256,7 +256,7 @@ PlasmoidItem {
                                         scale: thumbMouse.containsMouse ? 1.0 : 0.98
                                         Behavior on scale { NumberAnimation { duration: 150 } }
                                     }
-                                    // Kennzeichen für Video-Hintergründe
+                                    // badge for video wallpapers
                                     Rectangle {
                                         visible: isVid
                                         anchors.right: parent.right; anchors.bottom: parent.bottom

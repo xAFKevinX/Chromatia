@@ -8,6 +8,11 @@ ConfigModel {
         source: "configColors.qml"
     }
     ConfigCategory {
+        name: "Wallpaper"
+        icon: "preferences-desktop-wallpaper"
+        source: "configWallpaper.qml"
+    }
+    ConfigCategory {
         name: "Audio"
         icon: "audio-volume-high"
         source: "configAudio.qml"

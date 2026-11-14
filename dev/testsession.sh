@@ -49,8 +49,8 @@ stop)
     done; }
     # apps first, while KWin and the bus still run: if Wayland vanishes under them, portals and
     # kdeconnectd abort, get re-activated, abort again – a flood of crash reports in the real session
-    for r in 1 2 3; do mine | while read -r p c; do case "$c" in kwin_wayland*|dbus-daemon|dbus-run-sessio) ;; *) kill "$p" ;; esac; done; sleep 0.7; done
-    mine | while read -r p c; do kill "$p"; done
+    for r in 1 2 3; do mine | while read -r p c; do case "$c" in kwin_wayland*|dbus-daemon|dbus-run-sessio) ;; *) kill "$p" 2>/dev/null ;; esac; done; sleep 0.7; done
+    mine | while read -r p c; do kill "$p" 2>/dev/null; done
     sleep 1; for m in $(findmnt -rn -o TARGET | grep "^$B/run/"); do fusermount3 -uz "$m"; done
     rm -f $B/dbus $B/wl $B/*.pid ;;
 esac

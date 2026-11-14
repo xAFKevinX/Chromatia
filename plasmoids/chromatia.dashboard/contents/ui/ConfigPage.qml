@@ -16,6 +16,8 @@ KCM.SimpleKCM {
     property int cfg_popupSeconds; property int cfg_popupSecondsDefault
     property bool cfg_hideInFullscreen; property bool cfg_hideInFullscreenDefault
     property bool cfg_openNotificationsFirst; property bool cfg_openNotificationsFirstDefault
+    property bool cfg_pauseWhenCovered; property bool cfg_pauseWhenCoveredDefault
+    property bool cfg_pauseWhenTiled; property bool cfg_pauseWhenTiledDefault
     property int cfg_accentMode; property int cfg_accentModeDefault
     property string cfg_fixedAccent; property string cfg_fixedAccentDefault
 }

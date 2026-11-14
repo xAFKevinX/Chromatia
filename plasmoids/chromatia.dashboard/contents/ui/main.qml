@@ -1,9 +1,9 @@
-// Chromatia Dashboard – gleitet vom oberen Bildschirmrand heraus (Caelestia-Stil).
+// Chromatia dashboard – slides out of the top screen edge (Caelestia style).
 //
-// Sitzt in einer 10 px dünnen Leiste oben, die optisch den oberen Rahmen bildet.
-// Fährt die Maus an den oberen Rand, gleitet ein eigenes, selbst gezeichnetes Fenster
-// heraus. Seine oberen Ecken sind nach innen gewölbt und gehen fließend in den Rahmen über.
-// Kategorien: Dashboard, Medien, Leistung, Notizen. Farben folgen der Akzentfarbe.
+// Lives in a thin panel at the top that forms the top part of the frame.
+// When the mouse reaches the top edge, a self-drawn window slides out.
+// Its top corners curve inwards and flow into the frame.
+// Tabs: Dashboard, Audio, System, Notes, Notifications. Colors follow the accent color.
 
 import QtQuick
 import QtQuick.Layouts
@@ -25,7 +25,7 @@ PlasmoidItem {
     preferredRepresentation: fullRepresentation
     Plasmoid.backgroundHints: "NoBackground"
 
-    // ---- Farben (aus der Akzentfarbe, wie Leiste und Rahmen) ----
+    // ---- Colors (from the accent color, like the bar and the frame) ----
     readonly property color accent: (Plasmoid.configuration.accentColor !== "" ? Plasmoid.configuration.accentColor : Kirigami.Theme.highlightColor)
     readonly property real hue: Math.max(0, accent.hslHue)
     readonly property color cBase: Qt.hsla(hue, 0.25, 0.075, 1)
@@ -38,35 +38,36 @@ PlasmoidItem {
     readonly property real alertHue: { const h = (hue + 150 / 360) % 1; return h > 50 / 360 && h < 170 / 360 ? (h < 110 / 360 ? 45 / 360 : 185 / 360) : h; }
     readonly property color cAlert: Qt.hsla(alertHue, 0.85, 0.70, 1)
 
-    // ---- Maße ----
+    // ---- Sizes ----
     readonly property int dashW: 800
     readonly property int fullH: 400
-    readonly property int inv: 24      // nach innen gewölbte Ecke am Rahmen
-    readonly property int rad: 28      // abgerundete untere Ecken
+    readonly property int inv: 24      // inward curved corner at the frame
+    readonly property int rad: 28      // rounded bottom corners
 
     property real reveal: 0            // 0 = eingefahren, 1 = ganz offen
     property int tab: Plasmoid.configuration.lastTab
     property date now: new Date()
 
-    Timer { interval: 1000; running: true; repeat: true; onTriggered: root.now = new Date() }
+    readonly property bool isOpen: reveal > 0         // clock and sensors only run while the dashboard is open
+    Timer { interval: 1000; running: root.isOpen; repeat: true; triggeredOnStart: true; onTriggered: root.now = new Date() }
 
-    // ---- Daten ----
+    // ---- Data ----
     Mpris.Mpris2Model { id: mpris }
     readonly property var player: mpris.currentPlayer
     readonly property bool playing: !!player && player.playbackStatus === Mpris.PlaybackStatus.Playing
 
-    Sensors.Sensor { id: sCpu;   sensorId: "cpu/all/usage";                updateRateLimit: 1000 }
-    Sensors.Sensor { id: sCpuT;  sensorId: "cpu/all/averageTemperature";   updateRateLimit: 2000 }
-    Sensors.Sensor { id: sGpu;   sensorId: "gpu/gpu0/usage";               updateRateLimit: 1000 }
-    Sensors.Sensor { id: sGpuT;  sensorId: "gpu/gpu0/temperature";         updateRateLimit: 2000 }
-    Sensors.Sensor { id: sVram;  sensorId: "gpu/gpu0/usedPercent";         updateRateLimit: 2000 }
-    Sensors.Sensor { id: sGpuW;  sensorId: "gpu/gpu0/power";               updateRateLimit: 2000 }
-    Sensors.Sensor { id: sRam;   sensorId: "memory/physical/usedPercent";  updateRateLimit: 2000 }
-    Sensors.Sensor { id: sDisk;  sensorId: "disk/all/usedPercent";         updateRateLimit: 10000 }
+    Sensors.Sensor { id: sCpu;   sensorId: "cpu/all/usage";                updateRateLimit: 1000; enabled: root.isOpen }
+    Sensors.Sensor { id: sCpuT;  sensorId: "cpu/all/averageTemperature";   updateRateLimit: 2000; enabled: root.isOpen }
+    Sensors.Sensor { id: sGpu;   sensorId: "gpu/gpu0/usage";               updateRateLimit: 1000; enabled: root.isOpen }
+    Sensors.Sensor { id: sGpuT;  sensorId: "gpu/gpu0/temperature";         updateRateLimit: 2000; enabled: root.isOpen }
+    Sensors.Sensor { id: sVram;  sensorId: "gpu/gpu0/usedPercent";         updateRateLimit: 2000; enabled: root.isOpen }
+    Sensors.Sensor { id: sGpuW;  sensorId: "gpu/gpu0/power";               updateRateLimit: 2000; enabled: root.isOpen }
+    Sensors.Sensor { id: sRam;   sensorId: "memory/physical/usedPercent";  updateRateLimit: 2000; enabled: root.isOpen }
+    Sensors.Sensor { id: sDisk;  sensorId: "disk/all/usedPercent";         updateRateLimit: 10000; enabled: root.isOpen }
 
     function num(s) { const v = Number(s.value); return isNaN(v) ? 0 : v; }
 
-    // Visualizer: holt die Balken vom Helfer io.github.chromatia.Visualizer (startet cava nur bei Bedarf)
+    // Visualizer: gets the bars from the helper io.github.chromatia.Visualizer (starts cava only when needed)
     property var vizValues: []
     Timer {
         interval: 40
@@ -89,7 +90,7 @@ PlasmoidItem {
         }
     }
 
-    // Standby verhindern (wie Plasmas „Standby und Bildschirmsperre blockieren“)
+    // Inhibit sleep (like Plasma's "Block sleep and screen locking")
     property int inhibitCookie: -1
     function policyAgent(member, sig, args, done) {
         const r = SessionBus.asyncCall({ "service": "org.kde.Solid.PowerManagement", "path": "/org/kde/Solid/PowerManagement/PolicyAgent",
@@ -101,7 +102,7 @@ PlasmoidItem {
         else { policyAgent("ReleaseInhibition", "(u)", [inhibitCookie]); inhibitCookie = -1; }
     }
 
-    // ---- Programme mit Ton: Streams pro Programm zusammenfassen ----
+    // ---- Apps playing audio: one entry per app ----
     property var streams: ({})          // key -> {name, icon, obj, corked}
     property var appGroups: []          // [{name, icon, objs:[...]}]
     function streamName(m) {
@@ -210,7 +211,7 @@ PlasmoidItem {
         return aliasFor(d, d);
     }
 
-    // Mission Center öffnen (Flatpak)
+    // open Mission Center (Flatpak)
     P5Support.DataSource {
         id: runner
         engine: "executable"
@@ -228,7 +229,7 @@ PlasmoidItem {
         Layout.fillHeight: true
         Layout.minimumWidth: root.dashW
 
-        // ---- Auslöser am oberen Rand ----
+        // ---- Trigger at the top edge ----
         MouseArea {
             id: trigger
             width: root.dashW
@@ -301,7 +302,7 @@ PlasmoidItem {
             }
         }
 
-        // ---- Das herausgleitende Fenster ----
+        // ---- The sliding window ----
         PlasmaCore.Dialog {
             id: drawer
             visualParent: trigger
@@ -325,7 +326,7 @@ PlasmoidItem {
                 readonly property real bw: width
                 readonly property real bh: Math.max(root.inv + root.rad + 2, root.fullH * root.reveal)
 
-                // Form mit nach innen gewölbten oberen Ecken
+                // shape with inward curved top corners
                 Shape {
                     anchors.fill: parent
                     preferredRendererType: Shape.CurveRenderer
@@ -344,7 +345,7 @@ PlasmoidItem {
                     }
                 }
 
-                // Inhalt, der mit dem Fenster herausgleitet
+                // content that slides out with the window
                 Item {
                     x: root.inv
                     width: root.dashW
@@ -357,7 +358,7 @@ PlasmoidItem {
                         y: -(1 - root.reveal) * 40
                         opacity: Math.min(1, root.reveal * 1.8)
 
-                        // Kategorien
+                        // tabs
                         Row {
                             id: tabs
                             anchors.horizontalCenter: parent.horizontalCenter
@@ -553,7 +554,7 @@ PlasmoidItem {
                             RowLayout {
                                 spacing: 12
 
-                                // Uhr und Datum
+                                // clock and date
                                 Rectangle {
                                     Layout.preferredWidth: 220
                                     Layout.fillHeight: true
@@ -591,7 +592,7 @@ PlasmoidItem {
                                             font.pixelSize: 14
                                         }
                                     }
-                                    // Spielende Katze: „Cat playing animation“ von Abdul Latif (LottieFiles, freie Lizenz)
+                                    // playing cat: "Cat playing animation" by Abdul Latif (LottieFiles, Lottie Simple License)
                                     AnimatedImage {
                                         source: Qt.resolvedUrl("../images/cat-playing.webp")
                                         width: 200; height: 63
@@ -603,7 +604,7 @@ PlasmoidItem {
                                     }
                                 }
 
-                                // Kalender
+                                // calendar
                                 Rectangle {
                                     Layout.preferredWidth: 236
                                     Layout.fillHeight: true
@@ -670,7 +671,7 @@ PlasmoidItem {
                                     Layout.fillHeight: true
                                     spacing: 12
 
-                                    // Medien: rundes Bild mit Visualizer-Ring
+                                    // media: round cover with a visualizer ring
                                     Rectangle {
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 168
@@ -744,7 +745,7 @@ PlasmoidItem {
                                         }
                                     }
 
-                                    // Standby + Leistung kurz
+                                    // sleep switch + quick performance
                                     Rectangle {
                                         Layout.fillWidth: true
                                         Layout.fillHeight: true
@@ -800,7 +801,7 @@ PlasmoidItem {
                             RowLayout {
                                 spacing: 12
 
-                                // Ausgabe und Mikrofon
+                                // outputs and microphones
                                 Rectangle {
                                     Layout.preferredWidth: 380
                                     Layout.fillHeight: true
@@ -834,7 +835,7 @@ PlasmoidItem {
                                     }
                                 }
 
-                                // Programme, die gerade Ton abspielen
+                                // apps that are playing audio right now
                                 Rectangle {
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
@@ -870,7 +871,7 @@ PlasmoidItem {
                                 }
                             }
 
-                            // ===== Leistung =====
+                            // ===== System =====
                             Rectangle {
                                 radius: 20
                                 color: root.cCard
@@ -949,7 +950,7 @@ PlasmoidItem {
         }
     }
 
-    // ---- kleine Bausteine ----
+    // ---- small building blocks ----
     component MediaButton: Rectangle {
         id: mb
         property string icon
@@ -981,7 +982,7 @@ PlasmoidItem {
         font.bold: true
     }
 
-    // Lautstärkeregler mit Stumm-Knopf und Prozentanzeige
+    // volume slider with mute button and percentage
     component VolSlider: Item {
         id: vs
         property real value: 0          // 0..1
@@ -1050,7 +1051,7 @@ PlasmoidItem {
         }
     }
 
-    // Ausgabegerät oder Mikrofon: Klick macht es zum Standard, darunter Lautstärke
+    // output or microphone: a click makes it the default, volume below
     component DeviceRow: Rectangle {
         id: dr
         property bool mic: false
@@ -1098,7 +1099,7 @@ PlasmoidItem {
         }
     }
 
-    // Programm, das gerade Ton abspielt (alle seine Streams gemeinsam)
+    // app that is playing audio (all its streams together)
     component StreamRow: Rectangle {
         id: sr
         required property var modelData

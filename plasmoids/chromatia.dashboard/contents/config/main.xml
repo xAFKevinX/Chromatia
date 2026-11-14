@@ -18,6 +18,8 @@
     <entry name="popupSeconds" type="Int"><default>8</default></entry>
     <entry name="hideInFullscreen" type="Bool"><default>true</default></entry>
     <entry name="openNotificationsFirst" type="Bool"><default>false</default></entry>
+    <entry name="pauseWhenCovered" type="Bool"><default>true</default></entry>
+    <entry name="pauseWhenTiled" type="Bool"><default>true</default></entry>
     <entry name="accentMode" type="Int"><default>0</default></entry>
     <entry name="fixedAccent" type="String"><default>#7c6cf0</default></entry>
   </group>

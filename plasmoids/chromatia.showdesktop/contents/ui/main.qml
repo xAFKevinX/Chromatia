@@ -1,6 +1,6 @@
-// Chromatia "Show desktop": Klick minimiert alle Fenster der aktuellen Arbeitsfläche,
-// ein zweiter Klick stellt genau diese Fenster in ihrer alten Reihenfolge wieder her.
-// Aktiviert man zwischendurch selbst ein Fenster, vergisst das Symbol die Liste.
+// Chromatia "Show desktop": a click minimizes all windows of the current desktop,
+// a second click brings exactly those windows back in their old order.
+// Activating a window yourself in between makes it forget the list.
 import QtQuick
 import QtQuick.Layouts
 import org.kde.plasma.plasmoid
@@ -27,9 +27,9 @@ PlasmoidItem {
         onVirtualDesktopChanged: root.forget()
     }
 
-    property var hidden: []          // von uns minimierte Fenster (WinId)
+    property var hidden: []          // windows we minimized (WinId)
     property string lastActive: ""
-    property bool busy: false          // während wir selbst minimieren/wiederherstellen
+    property bool busy: false          // while we minimize/restore ourselves
     readonly property bool shown: hidden.length > 0
 
     function role(r, name) { return tasks.data(tasks.makeModelIndex(r), TaskManager.AbstractTasksModel[name]); }
@@ -66,7 +66,7 @@ PlasmoidItem {
     }
     Timer { id: busyTimer; interval: 800; onTriggered: root.busy = false }
 
-    // Selbst ein Fenster geöffnet oder aktiviert? Dann gilt der alte Zustand nicht mehr.
+    // opened or activated a window yourself? Then the old state no longer applies.
     Repeater {
         model: tasks
         delegate: Item {
@@ -78,11 +78,11 @@ PlasmoidItem {
     readonly property color accent: (Plasmoid.configuration.accentColor !== "" ? Plasmoid.configuration.accentColor : Kirigami.Theme.highlightColor)
     readonly property real hue: Math.max(0, accent.hslHue)
 
-    // Größerer Knopf: Pille mit Hundekopf, füllt die Leistenhöhe
+    // bigger button: a pill with the dog's head, fills the bar height
     fullRepresentation: Item {
         id: rep
-        readonly property int bw: 36       // Platz in der Leiste
-        readonly property int ext: 13      // so weit reicht die Pille in den Insel-Abstand hinein
+        readonly property int bw: 36       // space in the bar
+        readonly property int ext: 13      // how far the pill reaches into the gap between the islands
         Layout.preferredWidth: bw
         Layout.minimumWidth: bw
         Layout.maximumWidth: bw

@@ -1,9 +1,9 @@
-// Chromatia Dock – Programme und offene Fenster im Caelestia-Stil.
+// Chromatia dock – apps and open windows, Caelestia style.
 //
-// Linksklick: starten / nach vorne holen / minimieren (bei mehreren Fenstern: durchschalten)
-// Mittelklick: neues Fenster.  Rechtsklick: Menü (neues Fenster, anheften, schließen).
-// Drüberfahren: Live-Vorschau aller Fenster des Programms.
-// Für die „Wunderlampe“ beim Minimieren meldet jedes Symbol seine Bildschirmposition an KWin.
+// Left click: start / raise / minimize (several windows: cycle through them)
+// Middle click: new window.  Right click: menu (new window, pin, close).
+// Hover: live preview of all windows of the app.
+// For the Magic Lamp minimize animation every icon tells KWin where it is on screen.
 
 import QtQuick
 import QtQuick.Layouts
@@ -19,7 +19,7 @@ PlasmoidItem {
     preferredRepresentation: fullRepresentation
     Plasmoid.backgroundHints: "NoBackground"
 
-    // ---- Farben (vom Rahmen-Skript gesetzt, sonst Systemfarbe) ----
+    // ---- Colors (set by chromatia-sync, otherwise the system color) ----
     readonly property color accent: (Plasmoid.configuration.accentColor !== "" ? Plasmoid.configuration.accentColor : Kirigami.Theme.highlightColor)
     readonly property real hue: Math.max(0, accent.hslHue)
     readonly property color cBase: Qt.hsla(hue, 0.25, 0.075, 1)
@@ -64,12 +64,12 @@ PlasmoidItem {
         }
     }
 
-    // ---- Aktionen ----
+    // ---- Actions ----
     function leftClick(row, isLauncher, isActive, childCount) {
         const idx = tasksModel.makeModelIndex(row);
         if (isLauncher) { tasksModel.requestActivate(idx); return; }
         if (childCount > 1) {
-            // mehrere Fenster: das nächste nach vorne holen
+            // several windows: raise the next one
             let next = 0;
             for (let i = 0; i < childCount; i++) {
                 if (tasksModel.data(tasksModel.makeModelIndex(row, i), TaskManager.AbstractTasksModel.IsActive) === true) { next = (i + 1) % childCount; break; }
@@ -96,7 +96,7 @@ PlasmoidItem {
         interval: 300
         onTriggered: if (!preview.hovered && !root.anyHovered) preview.hide()
     }
-    // Maus irgendwo über dem Dock? (ein Handler fürs ganze Dock, kein Zähler der hängen bleiben kann)
+    // mouse anywhere over the dock? (one handler for the whole dock, no counter that can get stuck)
     property bool anyHovered: false
 
     PlasmaExtras.Menu {
@@ -162,7 +162,7 @@ PlasmoidItem {
                     height: rep.cell
                     anchors.verticalCenter: parent ? parent.verticalCenter : undefined
 
-                    // Position für die Minimier-Animation an KWin melden
+                    // tell KWin the icon position for the minimize animation
                     function publish() {
                         if (isLauncher) return;
                         const p = task.mapToGlobal(0, 0);
@@ -174,7 +174,7 @@ PlasmoidItem {
                     onIsLauncherChanged: pubTimer.restart()
                     Timer { id: pubTimer; interval: 200; onTriggered: task.publish() }
 
-                    // Hintergrund: aktive Pille in Akzentfarbe, sonst dezent beim Drüberfahren
+                    // background: active pill in the accent color, otherwise subtle on hover
                     Rectangle {
                         anchors.fill: parent
                         anchors.margins: 2
@@ -201,7 +201,7 @@ PlasmoidItem {
                         }
                     }
 
-                    // Punkte für offene Fenster (max. 3)
+                    // dots for open windows (max. 3)
                     Row {
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.bottom: parent.bottom

@@ -1,4 +1,4 @@
-// Mini-Ansicht einer Arbeitsfläche: Hintergrundbild plus Live-Bilder der Fenster an ihrer Position.
+// Mini view of a desktop: the wallpaper plus live pictures of the windows where they are.
 import QtQuick
 import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
@@ -8,16 +8,16 @@ import org.kde.pipewire as PipeWire
 PlasmaCore.Dialog {
     id: dlg
 
-    required property var pills          // Hauptobjekt (Farben, Umschalten)
+    required property var pills          // the pills widget (colors, switching)
     property Item target: null
     property var desktopId: ""
     property int number: 0
     property real reveal: 0
     readonly property bool hovered: hover.hovered
-    property bool ownerHovered: false     // vom Dock bzw. den Pillen gesetzt
+    property bool ownerHovered: false     // set by the dock or the workspace pills
     signal left()
 
-    // Geometrie des eigenen Bildschirms (logische Pixel)
+    // geometry of our own screen (logical pixels)
     property rect screenGeo: Qt.rect(0, 0, 1920, 1080)
     readonly property real miniW: 360
     readonly property real sc: miniW / Math.max(1, screenGeo.width)
@@ -129,7 +129,7 @@ PlasmaCore.Dialog {
                         y: (g.y - dlg.screenGeo.y) * dlg.sc
                         width: Math.max(8, g.width * dlg.sc)
                         height: Math.max(8, g.height * dlg.sc)
-                        z: model.StackingOrder !== undefined ? model.StackingOrder : index   // echte Stapelreihenfolge
+                        z: model.StackingOrder !== undefined ? model.StackingOrder : index   // real stacking order
                         radius: 4
                         color: dlg.pills.cCard2
                         border.width: model.IsActive === true ? 2 : 1
@@ -158,7 +158,7 @@ PlasmaCore.Dialog {
                     }
                 }
 
-                // Klick auf freie Fläche: zur Arbeitsfläche wechseln
+                // click on empty space: switch to this desktop
                 MouseArea {
                     anchors.fill: parent
                     z: -1

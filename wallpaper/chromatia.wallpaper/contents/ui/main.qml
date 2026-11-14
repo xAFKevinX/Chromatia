@@ -1,7 +1,7 @@
-// Bild mit Visualizer – Hintergrundbild plus Audio-Balken entlang der unteren Leiste.
-// Die Balken liegen auf der Hintergrundebene, also unter den Desktop-Symbolen.
-// Sie erscheinen nur, wenn etwas abgespielt wird. Die Werte liefert der Helfer
-// io.github.chromatia.Visualizer (cava), Farbe ist die Akzentfarbe des Systems.
+// Chromatia wallpaper – image or video, the frame, and audio bars along the bottom bar.
+// The bars live on the wallpaper layer, so they stay below the desktop icons.
+// They only appear while something plays. The values come from the helper
+// io.github.chromatia.Visualizer (cava), the color is the accent color.
 
 import QtQuick
 import QtQuick.Window
@@ -18,10 +18,10 @@ WallpaperItem {
 
     readonly property color accent: (root.configuration.AccentColor !== "" ? root.configuration.AccentColor : Kirigami.Theme.highlightColor)
 
-    // ---- Wechsel ohne sichtbares Ruckeln ----
-    // Beim Wechsel bleibt das alte Video als Standbild stehen. Das neue lädt unsichtbar und läuft
-    // schon an. Erst wenn das Skript fertig umgefärbt hat (SwitchGo == Image) und Plasma wieder
-    // ruhig ist, blendet es weich über. Alle kurzen Hänger fallen so in eine Phase ohne Bewegung.
+    // ---- Switching without visible stutter ----
+    // On a switch the old video freezes as a still. The new one loads invisibly and already
+    // starts. Only when chromatia-sync has finished recoloring (SwitchGo == Image) and Plasma is
+    // calm again does it crossfade. All short hitches fall into a moment without movement.
     property string shownSource: ""
     property bool frontIsA: true
     readonly property Item frontLayer: frontIsA ? imgA : imgB
@@ -58,7 +58,7 @@ WallpaperItem {
     function showImage(src) {
         if (!src) return;
         if (fade.running || goTimer.running) { pendingSrc = src; return; }
-        if (src === shownSource) {                 // zurück zum aktuellen Bild: einfach weiterlaufen
+        if (src === shownSource) {                 // back to the current picture: just keep going
             switching = false; fallbackTimer.stop(); frontLayer.live = true; return;
         }
         switching = true;
@@ -72,7 +72,7 @@ WallpaperItem {
     }
     function layerReady(layer, ok) {
         root.loading = false;
-        if (layer === frontLayer) { shownSource = layer.source; return; }   // erster Start
+        if (layer === frontLayer) { shownSource = layer.source; return; }   // first start
         if (!ok) { switching = false; frontLayer.live = true; return; }
         tryGo();
     }
@@ -80,13 +80,13 @@ WallpaperItem {
         if (!switching || fade.running || goTimer.running) return;
         const back = backLayer;
         if (back.source !== cfgImage || !back.isReady) return;
-        if (cfgGo !== cfgImage && fallbackTimer.running) return;     // Skript färbt noch um
+        if (cfgGo !== cfgImage && fallbackTimer.running) return;     // chromatia-sync is still recoloring
         fallbackTimer.stop();
         incoming = back;
-        incoming.live = true;                      // neues Video läuft unsichtbar an
+        incoming.live = true;                      // new video starts invisibly
         goTimer.restart();
     }
-    Timer { id: fallbackTimer; interval: 4000; onTriggered: root.tryGo() }   // falls kein SwitchGo kommt
+    Timer { id: fallbackTimer; interval: 4000; onTriggered: root.tryGo() }   // in case no SwitchGo arrives
     Timer { id: goTimer; interval: 450; onTriggered: { fade.target = root.incoming; fade.start(); } }
     NumberAnimation {
         id: fade
@@ -105,7 +105,7 @@ WallpaperItem {
         }
     }
 
-    // ---- Verdeckt? (maximiertes oder Vollbild-Fenster auf diesem Bildschirm) ----
+    // ---- Covered? (windows on this screen) ----
     TaskManager.VirtualDesktopInfo { id: vd }
     TaskManager.ActivityInfo { id: activityInfo }
     property var deskId: vd.currentDesktop
@@ -131,30 +131,59 @@ WallpaperItem {
         filterByActivity: true
         activity: activityInfo.currentActivity
     }
-    property int coverCount: 0
+    // Chromatia Settings → Wallpaper: pause for a maximized/fullscreen window, and/or when the
+    // windows together fill the screen (e.g. two halves). Videos and visualizer bars both stop.
+    property bool fullCover: false
+    property bool tiledCover: false
+    readonly property bool covered: (root.configuration.PauseWhenCovered && fullCover) || (root.configuration.PauseWhenTiled && tiledCover)
     Timer { id: coverTimer; interval: 250; onTriggered: {
-        let n = 0;
-        for (let i = 0; i < coverRep.count; i++) { const it = coverRep.itemAt(i); if (it && it.cov) n++; }
-        root.coverCount = n;
+        const rects = [];
+        let full = false;
+        for (let i = 0; i < coverRep.count; i++) {
+            const it = coverRep.itemAt(i);
+            if (it && it.shown) { full = full || it.big; rects.push(it.geo); }
+        }
+        root.fullCover = full;
+        root.tiledCover = !full && root.filled(rects);
     } }
+    // Is every pixel of the wallpaper inside the frame under a window? Only gaps up to 2 × tol px
+    // between windows are ignored. Exact: the window edges cut the area into cells, each cell is checked.
+    function filled(rects) {
+        const c = root.configuration, s = myScreenRect, tol = 4;
+        const L = s.x + c.FrameLeft, T = s.y + c.FrameTop, R = s.x + s.width - c.FrameRight, B = s.y + s.height - c.FrameBottom;
+        const rs = rects.map(r => ({ l: r.x - tol, t: r.y - tol, r: r.x + r.width + tol, b: r.y + r.height + tol }));
+        const xs = [L, R], ys = [T, B];
+        for (const r of rs) { xs.push(r.l, r.r); ys.push(r.t, r.b); }
+        const cut = (a, lo, hi) => a.filter(v => v >= lo && v <= hi).sort((p, q) => p - q);
+        const cx = cut(xs, L, R), cy = cut(ys, T, B);
+        for (let i = 0; i + 1 < cx.length; i++) for (let j = 0; j + 1 < cy.length; j++) {
+            if (cx[i + 1] - cx[i] < 0.5 || cy[j + 1] - cy[j] < 0.5) continue;
+            const x = (cx[i] + cx[i + 1]) / 2, y = (cy[j] + cy[j + 1]) / 2;
+            if (!rs.some(r => x >= r.l && x < r.r && y >= r.t && y < r.b)) return false;
+        }
+        return true;
+    }
     Repeater {
         id: coverRep
         model: onScreen
         delegate: Item {
-            readonly property bool cov: model.IsMinimized !== true && (model.IsMaximized === true || model.IsFullScreen === true)
-            onCovChanged: coverTimer.restart()
+            readonly property bool shown: model.IsMinimized !== true
+            readonly property bool big: shown && (model.IsMaximized === true || model.IsFullScreen === true)
+            readonly property rect geo: model.Geometry
+            onShownChanged: coverTimer.restart()
+            onBigChanged: coverTimer.restart()
+            onGeoChanged: coverTimer.restart()
             Component.onCompleted: coverTimer.restart()
             Component.onDestruction: coverTimer.restart()
         }
     }
-    readonly property bool covered: root.configuration.PauseWhenCovered && coverCount > 0
 
-    // Eine Ebene zeigt entweder ein Bild oder ein Video (stumm, in Endlosschleife)
+    // a layer shows either an image or a video (muted, looping)
     component Layer: Item {
         id: lay
         anchors.fill: parent
         property string source: ""
-        property bool live: false          // darf das Video laufen?
+        property bool live: false          // may the video play?
         property bool isReady: false
         readonly property bool isVideo: /\.(mp4|webm|mkv|mov|m4v)$/i.test(source)
         signal done(bool ok)
@@ -200,7 +229,7 @@ WallpaperItem {
                     onWantChanged: if (gotFrame) { want ? play() : pause(); }
                     onMediaStatusChanged: {
                         if (mediaStatus === MediaPlayer.LoadedMedia && !lay.isReady) {
-                            play();                       // erst ein Bild zeichnen lassen, dann ggf. pausieren
+                            play();                       // draw one frame first, then pause if needed
                         } else if (mediaStatus === MediaPlayer.InvalidMedia) lay.done(false);
                     }
                 }
@@ -211,7 +240,7 @@ WallpaperItem {
     Layer {
         id: imgA
         opacity: 1
-        z: root.frontLayer === imgA ? 1 : 2       // die hereinkommende Ebene liegt oben
+        z: root.frontLayer === imgA ? 1 : 2       // the incoming layer is on top
         onDone: ok => root.layerReady(imgA, ok)
     }
     Layer {
@@ -221,7 +250,7 @@ WallpaperItem {
         onDone: ok => root.layerReady(imgB, ok)
     }
 
-    // ---- Rahmen als Ebene (gleiche Farbe wie die Leiste) ----
+    // ---- Frame as a layer (same color as the bar) ----
     Shape {
         id: frame
         anchors.fill: parent
@@ -263,7 +292,7 @@ WallpaperItem {
     Timer {
         interval: 40
         repeat: true
-        running: root.active
+        running: root.active && !root.covered          // hidden behind windows: no need to fetch bars
         onRunningChanged: if (!running) root.values = []
         onTriggered: {
             const reply = SessionBus.asyncCall({
@@ -281,10 +310,10 @@ WallpaperItem {
         }
     }
 
-    // ---- Balken: gespiegelt, tiefe Töne in der Mitte ----
+    // ---- Bars: mirrored, low notes in the middle ----
     Item {
         id: bars
-        z: 10                          // über beiden Bildebenen der Überblendung
+        z: 10                          // above both layers of the crossfade
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
@@ -292,7 +321,7 @@ WallpaperItem {
         anchors.rightMargin: 44
         anchors.bottomMargin: root.configuration.BottomOffset
         height: root.configuration.BarHeight
-        opacity: root.active ? 1 : 0
+        opacity: root.active && !root.covered ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: 600; easing.type: Easing.InOutQuad } }
         visible: opacity > 0
 
@@ -303,7 +332,7 @@ WallpaperItem {
         Repeater {
             model: bars.count
             Rectangle {
-                // Index links der Mitte spiegeln: Mitte = tiefe Frequenzen
+                // mirror the index left of the middle: middle = low frequencies
                 readonly property int src: index < bars.half ? (bars.half - 1 - index) : (index - bars.half)
                 readonly property real v: (root.values && root.values.length > src) ? root.values[src] : 0
                 x: index * bars.slot + bars.slot * 0.2
@@ -311,7 +340,7 @@ WallpaperItem {
                 height: 3 + v * bars.height
                 anchors.bottom: parent.bottom
                 radius: width / 2
-                // Akzentfarbe aus dem Hintergrundbild
+                // accent color from the wallpaper
                 color: root.accent
                 opacity: 0.45 + 0.45 * v
                 Behavior on height { NumberAnimation { duration: 70 } }

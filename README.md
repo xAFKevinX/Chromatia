@@ -18,7 +18,7 @@ https://github.com/user-attachments/assets/17dc0145-0b8f-4d3d-8fab-c6801b7a00a2
 
 - **Wallpaper-driven colors** – a strong accent color is picked from every wallpaper (for videos from a still frame) and applied everywhere, including the KDE system accent, the Konsole terminal and VS Code.
 - **Frame around the desktop** – rounded inner corners, colored like the bar, drawn over images and videos.
-- **Video wallpapers** – muted, looping, paused automatically while a window is maximized or fullscreen on that screen. Switching wallpapers freezes the old video, recolors everything, then crossfades — no visible stutter.
+- **Video wallpapers** – muted, looping, paused automatically while a window is maximized or fullscreen on that screen, or while windows side by side fill it (both can be switched off). Switching wallpapers freezes the old video, recolors everything, then crossfades — no visible stutter.
 - **Audio visualizer** – bars along the bottom of the wallpaper while music plays (needs `cava`).
 - **Island bar** – workspaces | dock | tray, clock and a kawaii *show desktop* dog.
 - **Dock** – apps grouped, live window previews (also for minimized windows), magic-lamp minimize target, pin/unpin, middle-click for a new window.

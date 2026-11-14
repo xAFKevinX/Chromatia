@@ -1,4 +1,4 @@
-// Ringanzeige (0–100 %) mit Wert in der Mitte und Beschriftung darunter.
+// Ring gauge (0–100 %) with the value in the middle and a label below.
 import QtQuick
 import QtQuick.Shapes
 

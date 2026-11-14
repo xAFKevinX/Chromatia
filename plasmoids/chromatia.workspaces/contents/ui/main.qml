@@ -1,6 +1,6 @@
-// Arbeitsflächen-Pillen – Caelestia-artige Anzeige der virtuellen Arbeitsflächen.
-// Jede Arbeitsfläche ist eine nummerierte Pille, die aktive breiter und in der
-// Akzentfarbe. Klick wechselt die Arbeitsfläche, Mausrad blättert.
+// Workspace pills – virtual desktops, Caelestia style.
+// Every desktop is a numbered pill, the active one wider and in the
+// accent color. Click switches, the mouse wheel scrolls through them.
 
 import QtQuick
 import QtQuick.Layouts
@@ -46,7 +46,7 @@ PlasmoidItem {
 
     TaskManager.VirtualDesktopInfo { id: vd }
 
-    // Plasma kann Arbeitsflächen pro Bildschirm, daher die des eigenen Bildschirms.
+    // Plasma can have desktops per screen, so use the one of our own screen.
     property string screenName: Screen.name
     property var current: vd.currentDesktop
 
@@ -73,7 +73,7 @@ PlasmoidItem {
     function addDesktop() { kwinDesk("createDesktop", "(us)", [vd.numberOfDesktops, ""]); }
     function removeDesktop(id) { if (vd.numberOfDesktops > 1) kwinDesk("removeDesktop", "(s)", [id]); }
 
-    // Pillengröße folgt der Leistenhöhe, damit sie gut zu treffen ist.
+    // pill size follows the bar height so the pills are easy to hit
     readonly property int pillH: Math.max(18, Math.round(root.height * 0.62))
     readonly property int pillW: Math.round(pillH * 1.45)
 
@@ -141,7 +141,7 @@ PlasmoidItem {
                     }
                 }
             }
-            // Neue Arbeitsfläche anlegen
+            // add a desktop
             Rectangle {
                 width: root.pillH; height: root.pillH
                 radius: height / 2
@@ -150,7 +150,7 @@ PlasmoidItem {
                 border.width: 1
                 border.color: Qt.alpha(Kirigami.Theme.textColor, plusMouse.containsMouse ? 0.0 : 0.18)
                 Behavior on color { ColorAnimation { duration: 150 } }
-                // Plus aus zwei Balken, exakt mittig
+                // plus sign from two bars, exactly centered
                 Repeater {
                     model: 2
                     Rectangle {

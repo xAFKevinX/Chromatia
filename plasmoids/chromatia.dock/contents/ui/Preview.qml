@@ -1,4 +1,4 @@
-// Vorschaufenster eines Dock-Eintrags: Live-Bilder aller Fenster des Programms.
+// Preview of a dock entry: live pictures of all windows of the app.
 import QtQuick
 import QtQml.Models
 import org.kde.plasma.core as PlasmaCore
@@ -9,13 +9,13 @@ import org.kde.pipewire as PipeWire
 PlasmaCore.Dialog {
     id: dlg
 
-    required property var dock          // Hauptobjekt (Farben, Modell, Funktionen)
-    property Item target: null          // Dock-Symbol, über dem die Vorschau steht
-    property int row: -1                // Zeile im Fenstermodell
+    required property var dock          // the dock (colors, model, functions)
+    property Item target: null          // dock icon the preview sits above
+    property int row: -1                // row in the task model
     property bool isGroup: false
     property real reveal: 0
     readonly property bool hovered: hover.hovered
-    property bool ownerHovered: false     // vom Dock bzw. den Pillen gesetzt
+    property bool ownerHovered: false     // set by the dock or the workspace pills
     signal left()
 
     visualParent: target
@@ -156,7 +156,7 @@ PlasmaCore.Dialog {
             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: dlg.dock.tasks.requestClose(card.modelIndex) }
         }
 
-        // Live-Bild des Fensters
+        // live picture of the window
         Rectangle {
             x: 8; y: 34
             width: parent.width - 16
