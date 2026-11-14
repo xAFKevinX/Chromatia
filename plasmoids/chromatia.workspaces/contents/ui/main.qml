@@ -64,23 +64,12 @@ PlasmoidItem {
     onScreenNameChanged: refresh()
     Component.onCompleted: refresh()
 
-    function switchTo(number) {
-        const reply = SessionBus.asyncCall({
-            "service": "org.kde.kglobalaccel",
-            "path": "/component/kwin",
-            "iface": "org.kde.kglobalaccel.Component",
-            "member": "invokeShortcut",
-            "signature": "(s)",
-            "arguments": ["Switch to Desktop " + number]
-        });
-        reply.finished.connect(() => reply.destroy());
-    }
-
-    function kwinDesk(member, sig, args) {
-        const r = SessionBus.asyncCall({ "service": "org.kde.KWin", "path": "/VirtualDesktopManager",
-            "iface": "org.kde.KWin.VirtualDesktopManager", "member": member, "signature": sig, "arguments": args });
+    function call(service, path, iface, member, sig, args) {
+        const r = SessionBus.asyncCall({ "service": service, "path": path, "iface": iface, "member": member, "signature": sig, "arguments": args });
         r.finished.connect(() => r.destroy());
     }
+    function switchTo(number) { call("org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component", "invokeShortcut", "(s)", ["Switch to Desktop " + number]); }
+    function kwinDesk(member, sig, args) { call("org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager", member, sig, args); }
     function addDesktop() { kwinDesk("createDesktop", "(us)", [vd.numberOfDesktops, ""]); }
     function removeDesktop(id) { if (vd.numberOfDesktops > 1) kwinDesk("removeDesktop", "(s)", [id]); }
 

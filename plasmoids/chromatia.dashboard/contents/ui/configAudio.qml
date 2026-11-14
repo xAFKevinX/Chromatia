@@ -3,15 +3,10 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.kcmutils as KCM
 import org.kde.plasma.private.volume
 
-KCM.SimpleKCM {
+ConfigPage {
     id: page
-
-    property string cfg_hiddenOutputs
-    property string cfg_hiddenInputs
-    property string cfg_deviceNames
 
     function arr(t) { try { return JSON.parse(t || "[]"); } catch (e) { return []; } }
     function obj(t) { try { return JSON.parse(t || "{}"); } catch (e) { return {}; } }

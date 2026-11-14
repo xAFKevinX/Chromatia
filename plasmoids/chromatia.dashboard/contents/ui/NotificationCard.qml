@@ -47,8 +47,6 @@ Rectangle {
     height: implicitHeight
     radius: 18
     color: hover.hovered ? dash.cCard2 : dash.cCard
-    border.width: 0
-    border.color: Qt.alpha(dash.accent, 0.35)
     Behavior on color { ColorAnimation { duration: 140 } }
 
     HoverHandler { id: hover }

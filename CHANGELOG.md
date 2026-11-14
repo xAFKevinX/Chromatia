@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.1
+- Fixed: the uninstaller left the notification script behind (KDE's popups stayed hidden afterwards) and kept chromatia-update.
+- Opening Chromatia Settings no longer fills the Plasma log with warnings.
+- Code cleanup: less duplicated code, unused parts removed. Nothing changes in how it looks or works.
+
 ## 1.4.0
 - **Notifications**: new notifications slide out of the frame at the top right and slide back in after a few seconds (hover to keep them). Buttons and clicks work as usual.
 - A glowing pill in the notch tells you when something is unread, in a signal color that matches your accent without being the same. All notifications are collected in the dashboard's new **Notifications** tab, with do-not-disturb.

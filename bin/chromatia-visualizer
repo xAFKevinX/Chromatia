@@ -60,10 +60,6 @@ class Visualizer(dbus.service.Object):
             self.start()
         return self.values
 
-    @dbus.service.method(NAME, in_signature="", out_signature="b")
-    def Available(self):
-        return shutil.which("cava") is not None
-
     def start(self):
         if shutil.which("cava") is None:
             return

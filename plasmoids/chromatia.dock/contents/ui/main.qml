@@ -9,7 +9,6 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Window
 import org.kde.plasma.plasmoid
-import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import org.kde.taskmanager as TaskManager

@@ -1,6 +1,5 @@
 // Vorschaufenster eines Dock-Eintrags: Live-Bilder aller Fenster des Programms.
 import QtQuick
-import QtQuick.Shapes
 import QtQml.Models
 import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
@@ -99,7 +98,6 @@ PlasmaCore.Dialog {
             }
 
             Row {
-                id: cards
                 anchors.centerIn: parent
                 spacing: 10
                 Repeater { model: dlg.isGroup ? kids : top }
@@ -160,7 +158,6 @@ PlasmaCore.Dialog {
 
         // Live-Bild des Fensters
         Rectangle {
-            id: thumbFrame
             x: 8; y: 34
             width: parent.width - 16
             height: parent.height - 42

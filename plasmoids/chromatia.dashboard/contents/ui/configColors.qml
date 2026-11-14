@@ -4,15 +4,9 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import QtQuick.Dialogs
 import org.kde.kirigami as Kirigami
-import org.kde.kcmutils as KCM
 
-KCM.SimpleKCM {
+ConfigPage {
     id: page
-
-    property int cfg_accentMode
-    property string cfg_fixedAccent
-    property bool cfg_systemAccent
-    property bool cfg_appColors
 
     Kirigami.FormLayout {
         QQC2.RadioButton {

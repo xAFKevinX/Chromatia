@@ -18,9 +18,11 @@ Config (optional): ~/.config/chromatia/chromatia.conf
 """
 import colorsys
 import configparser
+import functools
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -37,7 +39,6 @@ THUMBS = os.path.join(HOME, ".cache/chromatia/thumbs")
 
 FRAME = 10        # frame width in logical pixels (panels on an edge make it wider)
 RADIUS = 25       # radius of the inner corners
-SAT, LIGHT = 0.25, 0.075                       # frame / bar color derived from the accent
 OWN = "chromatia.wallpaper"                    # draws the frame itself (also over videos)
 PLUGINS = ("org.kde.image", OWN)
 VIDEO_EXT = (".mp4", ".webm", ".mkv", ".mov", ".m4v")
@@ -48,6 +49,19 @@ def log(msg):
     print(msg, flush=True)
 
 
+def hue(rgb):
+    return colorsys.rgb_to_hls(*(c / 255 for c in rgb))[0]
+
+
+def tone(h, sat, light):
+    """(r, g, b) with the given hue, saturation and lightness – all Chromatia colors come from this."""
+    return tuple(round(c * 255) for c in colorsys.hls_to_rgb(h % 1.0, light, sat))
+
+
+def hexc(rgb):
+    return "#%02x%02x%02x" % tuple(rgb)
+
+
 def read_ini(path):
     cp = configparser.RawConfigParser(strict=False)
     cp.optionxform = str
@@ -55,6 +69,7 @@ def read_ini(path):
     return cp
 
 
+@functools.lru_cache(maxsize=None)
 def dashboard_settings():
     """Chromatia Settings live in the dashboard widget's config (gear in the dashboard)."""
     cp = read_ini(APPLETSRC)
@@ -72,6 +87,10 @@ def setting(key, default):
     if keymap.get(key, key) in dash:
         return dash[keymap.get(key, key)]
     return read_ini(CONFIG).get("General", key, fallback=default)
+
+
+def enabled(key):
+    return setting(key, "true").lower() not in ("false", "0", "no")
 
 
 def fixed_accent():
@@ -116,8 +135,7 @@ def still_of(path):
 
 def accent():
     raw = read_ini(KDEGLOBALS).get("General", "AccentColor", fallback="61,174,233")
-    r, g, b = [int(x) for x in raw.split(",")[:3]]
-    return r, g, b
+    return tuple(int(x) for x in raw.split(",")[:3])
 
 
 def pick_accent(path):
@@ -134,19 +152,18 @@ def pick_accent(path):
         if sc > score:
             best, score = (r, g, b), sc
     h, l, s = colorsys.rgb_to_hls(*(c / 255 for c in best))
-    r, g, b = colorsys.hls_to_rgb(h, min(max(l, 0.45), 0.62), max(s, 0.35))
-    return round(r * 255), round(g * 255), round(b * 255)
+    return tone(h, max(s, 0.35), min(max(l, 0.45), 0.62))
 
 
 def apply_system_accent(rgb):
     """Set the KDE system accent color (folders, highlights, apps)."""
-    if setting("SystemAccent", "true").lower() in ("false", "0", "no"):
+    if not enabled("SystemAccent"):
         return
     cur = read_ini(KDEGLOBALS).get("Colors:View", "DecorationFocus", fallback="")
     val = ",".join(str(c) for c in rgb)
     if cur.replace(" ", "") == val:
         return
-    subprocess.run(["plasma-apply-colorscheme", "-a", "#%02x%02x%02x" % rgb], capture_output=True, timeout=30)
+    subprocess.run(["plasma-apply-colorscheme", "-a", hexc(rgb)], capture_output=True, timeout=30)
     log(f"system accent {val}")
     # Tinted Breeze folder icons still use the old color after plasma-apply-colorscheme's own
     # signal. One extra "palette changed" a moment later fixes that (only one: each costs a redraw).
@@ -158,7 +175,7 @@ def apply_system_accent(rgb):
 
 def sync_notification_script():
     """Chromatia popups on → KWin script hides KDE's popups; off → KDE's popups come back."""
-    want = setting("chromatiaPopups", "true").lower() not in ("false", "0", "no")
+    want = enabled("chromatiaPopups")
     cur = read_ini(os.path.join(HOME, ".config/kwinrc")).get("Plugins", "chromatia-notificationsEnabled", fallback="")
     if (cur == "true") == want:
         return
@@ -170,13 +187,12 @@ def sync_notification_script():
 
 def write_konsole(rgb):
     """Konsole color scheme + profile "Chromatia" in the wallpaper's colors (Settings → Colors)."""
-    if setting("appColors", "true").lower() in ("false", "0", "no"):
+    if not enabled("appColors"):
         return
-    h, _l, _s = colorsys.rgb_to_hls(*(c / 255 for c in rgb))
+    h = hue(rgb)
 
-    def col(hue, sat, light):
-        r, g, b = colorsys.hls_to_rgb(hue % 1.0, light, sat)
-        return f"{round(r * 255)},{round(g * 255)},{round(b * 255)}"
+    def col(hh, sat, light):
+        return ",".join(map(str, tone(hh, sat, light)))
     acc = ",".join(str(c) for c in rgb)
     # ANSI hues, nudged a little toward the accent so everything feels related
     hues = {1: 0.99, 2: 0.33, 3: 0.12, 4: 0.6, 5: 0.83, 6: 0.5}
@@ -191,10 +207,10 @@ def write_konsole(rgb):
              "[Color7Faint]", f"Color={col(h, 0.15, 0.55)}"]
     closest = min(hues, key=lambda k: min(abs(hues[k] - h), 1 - abs(hues[k] - h)))
     for n, base in hues.items():
-        hue = base + ((h - base + 0.5) % 1.0 - 0.5) * 0.15
-        normal = acc if n == closest else col(hue, 0.6, 0.62)
-        lines += [f"[Color{n}]", f"Color={normal}", f"[Color{n}Intense]", f"Color={col(hue, 0.7, 0.72)}",
-                  f"[Color{n}Faint]", f"Color={col(hue, 0.4, 0.45)}"]
+        hh = base + ((h - base + 0.5) % 1.0 - 0.5) * 0.15
+        normal = acc if n == closest else col(hh, 0.6, 0.62)
+        lines += [f"[Color{n}]", f"Color={normal}", f"[Color{n}Intense]", f"Color={col(hh, 0.7, 0.72)}",
+                  f"[Color{n}Faint]", f"Color={col(hh, 0.4, 0.45)}"]
     d = os.path.join(HOME, ".local/share/konsole")
     os.makedirs(d, exist_ok=True)
     with open(os.path.join(d, "Chromatia.colorscheme"), "w") as f:
@@ -244,8 +260,7 @@ def _jsonc_scan(text):
 
 def _jsonc_load(text):
     plain = "".join(c for _i, c, _s, com in _jsonc_scan(text) if not com)
-    import re as _re
-    return json.loads(_re.sub(r",(\s*[}\]])", r"\1", plain))
+    return json.loads(re.sub(r",(\s*[}\]])", r"\1", plain))
 
 
 def _set_json_key(text, key, value, indent="    "):
@@ -287,17 +302,16 @@ def _set_json_key(text, key, value, indent="    "):
 
 def write_vscode(rgb):
     """VS Code: wallpaper colors via workbench.colorCustomizations (only that key is touched)."""
-    if setting("appColors", "true").lower() in ("false", "0", "no"):
+    if not enabled("appColors"):
         return
     path = os.path.join(HOME, ".config/Code/User/settings.json")
     if not os.path.exists(path):
         return
-    h, _l, _s = colorsys.rgb_to_hls(*(c / 255 for c in rgb))
+    h = hue(rgb)
 
-    def c(sat, light, alpha=""):
-        r, g, b = colorsys.hls_to_rgb(h, light, sat)
-        return "#%02x%02x%02x%s" % (round(r * 255), round(g * 255), round(b * 255), alpha)
-    a = "#%02x%02x%02x" % rgb
+    def c(sat, light):
+        return hexc(tone(h, sat, light))
+    a = hexc(rgb)
     frame, editor, card, line, fg, dim = c(.25, .075), c(.22, .095), c(.2, .14), c(.2, .2), c(.25, .88), c(.2, .6)
     colors = {
         "editor.background": editor, "editorGutter.background": editor, "editor.lineHighlightBackground": card + "80",
@@ -335,23 +349,12 @@ def write_vscode(rgb):
     os.replace(path + ".tmp", path)
 
 
-def frame_color(rgb):
-    h, _l, _s = colorsys.rgb_to_hls(*(c / 255 for c in rgb))
-    r, g, b = colorsys.hls_to_rgb(h, LIGHT, SAT)
-    return round(r * 255), round(g * 255), round(b * 255)
-
-
 def colors_script(acc, wall=""):
     """Plasma script: write the colors into all Chromatia widgets, Panel Colorizer and the
     wallpaper plugin. Only writes what changed (otherwise the path unit would loop)."""
-    h, _l, _s = colorsys.rgb_to_hls(*(c / 255 for c in acc))
-
-    def hsl(sat, light):
-        r, g, b = colorsys.hls_to_rgb(h, light, sat)
-        return "#%02x%02x%02x" % (round(r * 255), round(g * 255), round(b * 255))
-    accent_hex = "#%02x%02x%02x" % acc
-    cols = {"panelBg": hsl(0.25, 0.075), "widgetBg": hsl(0.20, 0.17), "fg": hsl(0.55, 0.85)}
-    return ("var ACC=%s, C=%s, WALL=%s, n=0;" % (json.dumps(accent_hex), json.dumps(cols), json.dumps(wall)) + """
+    h = hue(acc)
+    cols = {"panelBg": hexc(tone(h, 0.25, 0.075)), "widgetBg": hexc(tone(h, 0.20, 0.17)), "fg": hexc(tone(h, 0.55, 0.85))}
+    return ("var ACC=%s, C=%s, WALL=%s, n=0;" % (json.dumps(hexc(acc)), json.dumps(cols), json.dumps(wall)) + """
 function setc(o, hex){ if(!o) return; o.enabled=true; o.sourceType=0; o.custom=hex; o.alpha=1;
   o.lightnessEnabled=false; o.saturationEnabled=false; }
 panels().forEach(function(p){ p.widgets().forEach(function(w){
@@ -487,9 +490,9 @@ def main():
     main_original = state.get("0") or next(iter(state.values()), None)
     still = still_of(main_original) if main_original and os.path.exists(main_original) else None
     acc = fixed_accent() or (pick_accent(still) if still and os.path.exists(still) else accent())
-    state["accent"] = "#%02x%02x%02x" % acc
-    color = frame_color(acc)
-    hexcol = "%02x%02x%02x" % color
+    state["accent"] = hexc(acc)
+    color = tone(hue(acc), 0.25, 0.075)                   # frame / bar color
+    hexcol = hexc(color)[1:]
     scr = screens()
     changes, framed, own = {}, {}, {}
     for idx, (cid, current, plugin) in walls.items():

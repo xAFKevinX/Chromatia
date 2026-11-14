@@ -3,10 +3,9 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.kcmutils as KCM
 import org.kde.plasma.plasma5support as P5Support
 
-KCM.SimpleKCM {
+ConfigPage {
     id: page
 
     property var info: ({})

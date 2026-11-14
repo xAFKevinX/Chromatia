@@ -14,17 +14,13 @@ Rectangle {
     color: dash.cCard
 
     // header: count, do-not-disturb, clear all
-    Row {
+    Text {
         id: head
         x: 16; y: 12
-        spacing: 10
-        Text {
-            text: page.history.count === 0 ? "No notifications" : (page.history.count + (page.history.count === 1 ? " notification" : " notifications"))
-            color: page.dash.cText
-            font.pixelSize: 15
-            font.bold: true
-            anchors.verticalCenter: parent.verticalCenter
-        }
+        text: page.history.count === 0 ? "No notifications" : (page.history.count + (page.history.count === 1 ? " notification" : " notifications"))
+        color: page.dash.cText
+        font.pixelSize: 15
+        font.bold: true
     }
     Row {
         anchors.right: parent.right

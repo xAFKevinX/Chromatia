@@ -1,6 +1,5 @@
 // Mini-Ansicht einer Arbeitsfläche: Hintergrundbild plus Live-Bilder der Fenster an ihrer Position.
 import QtQuick
-import QtQuick.Window
 import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
 import org.kde.taskmanager as TaskManager
@@ -104,7 +103,6 @@ PlasmaCore.Dialog {
 
             // Mini-Bildschirm
             Rectangle {
-                id: mini
                 x: 14; y: 40
                 width: dlg.miniW; height: dlg.miniH
                 radius: 12

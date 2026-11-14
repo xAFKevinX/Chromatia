@@ -1,9 +1,9 @@
 // Chromatia Hintergrund-Panel – gleitet vom linken Bildschirmrand heraus.
 //
 // Sitzt in einer dünnen Leiste links, die optisch den linken Rahmen bildet. Fährt die
-// Maus in der Mitte an den linken Rand, gleitet eine Bildergalerie heraus (Ordner
-// ~/Bilder/Hintergründe). Ein Klick setzt das Bild auf allen Bildschirmen. Rahmen und
-// Farben passen sich danach automatisch an (Dienst rahmen-hintergrund).
+// Maus in der Mitte an den linken Rand, gleitet eine Bildergalerie heraus (Ordner aus den
+// Widget-Einstellungen, sonst ~/Pictures/Wallpapers). Ein Klick setzt das Bild auf allen
+// Bildschirmen, chromatia-sync färbt danach alles passend ein.
 
 import QtQuick
 import QtQuick.Layouts
@@ -13,7 +13,6 @@ import Qt.labs.folderlistmodel
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.workspace.dbus
 import org.kde.plasma.plasma5support as P5Support
 import QtCore
 
@@ -166,7 +165,6 @@ PlasmoidItem {
                     clip: true
 
                     Item {
-                        id: content
                         width: root.fullW
                         height: root.bodyH
                         x: -(1 - root.reveal) * 40
@@ -192,9 +190,8 @@ PlasmoidItem {
                         FolderListModel {
                             id: folderModel
                             folder: root.folderUrl
-                            nameFilters: ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.avif", "*.bmp",
-                                          "*.PNG", "*.JPG", "*.JPEG", "*.WEBP",
-                                          "*.mp4", "*.webm", "*.mkv", "*.mov", "*.m4v", "*.MP4", "*.WEBM"]
+                            nameFilters: ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.avif", "*.bmp", "*.mp4", "*.webm", "*.mkv", "*.mov", "*.m4v"]
+                            caseSensitive: false
                             showDirs: false
                             sortField: FolderListModel.Name
                         }
@@ -231,9 +228,9 @@ PlasmoidItem {
                                 width: grid.cellWidth
                                 height: grid.cellHeight
                                 readonly property bool isCurrent: Plasmoid.configuration.current === fileUrl.toString()
+                                readonly property bool isVid: /\.(mp4|webm|mkv|mov|m4v)$/i.test(fileName)
 
                                 Rectangle {
-                                    id: frame
                                     anchors.fill: parent
                                     anchors.margins: 5
                                     radius: 14
@@ -247,7 +244,6 @@ PlasmoidItem {
                                         color: root.cCard
                                         // Vorschau aus dem Cache; fehlt sie noch, wird nach --thumbs neu geladen.
                                         // Bilder dürfen solange direkt gezeigt werden, Videos nicht (das kann Image nicht).
-                                        readonly property bool isVid: /\.(mp4|webm|mkv|mov|m4v)$/i.test(fileName)
                                         property bool fallback: false
                                         readonly property int rev: root.thumbRev
                                         onRevChanged: fallback = false
@@ -262,7 +258,7 @@ PlasmoidItem {
                                     }
                                     // Kennzeichen für Video-Hintergründe
                                     Rectangle {
-                                        visible: /\.(mp4|webm|mkv|mov|m4v)$/i.test(fileName)
+                                        visible: isVid
                                         anchors.right: parent.right; anchors.bottom: parent.bottom
                                         anchors.margins: 9
                                         width: 24; height: 24; radius: 12

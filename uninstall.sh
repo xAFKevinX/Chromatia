@@ -7,13 +7,15 @@ cd "$(dirname "$(readlink -f "$0")")"
 systemctl --user disable --now chromatia-sync.path >/dev/null 2>&1
 rm -f "$HOME/.config/systemd/user/chromatia-sync.service" "$HOME/.config/systemd/user/chromatia-sync.path"
 systemctl --user daemon-reload
-rm -f "$HOME/.local/bin/chromatia-sync" "$HOME/.local/bin/chromatia-visualizer" \
-      "$HOME/.local/share/dbus-1/services/io.github.chromatia.Visualizer.service"
+for f in bin/*; do rm -f "$HOME/.local/bin/$(basename "$f")"; done
+rm -f "$HOME/.local/share/dbus-1/services/io.github.chromatia.Visualizer.service"
 for d in plasmoids/*/; do kpackagetool6 --type Plasma/Applet --remove "$(basename "$d")" >/dev/null 2>&1; done
 kpackagetool6 --type Plasma/Wallpaper --remove chromatia.wallpaper >/dev/null 2>&1
-kpackagetool6 --type KWin/Script --remove chromatia-edgelink >/dev/null 2>&1
+for k in kwin/chromatia-*/; do   # edge link, notifications (else KDE's popups would stay hidden)
+    kpackagetool6 --type KWin/Script --remove "$(basename "$k")" >/dev/null 2>&1
+    kwriteconfig6 --file kwinrc --group Plugins --key "$(basename "$k")Enabled" --delete
+done
 rm -rf "$HOME/.local/share/kwin/scripts/kzones-chromatia"
-kwriteconfig6 --file kwinrc --group Plugins --key chromatia-edgelinkEnabled --delete
 kwriteconfig6 --file kwinrc --group Plugins --key kzones-chromatiaEnabled --delete
 qdbus-qt6 org.kde.KWin /KWin reconfigure >/dev/null 2>&1
 rm -rf "$HOME/.cache/chromatia" "$HOME/.local/state/chromatia"

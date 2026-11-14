@@ -91,22 +91,14 @@ PlasmoidItem {
 
     // Standby verhindern (wie Plasmas „Standby und Bildschirmsperre blockieren“)
     property int inhibitCookie: -1
+    function policyAgent(member, sig, args, done) {
+        const r = SessionBus.asyncCall({ "service": "org.kde.Solid.PowerManagement", "path": "/org/kde/Solid/PowerManagement/PolicyAgent",
+            "iface": "org.kde.Solid.PowerManagement.PolicyAgent", "member": member, "signature": sig, "arguments": args });
+        r.finished.connect(() => { if (done && !r.isError) done(r.value); r.destroy(); });
+    }
     function toggleStandby() {
-        if (inhibitCookie >= 0) {
-            const r = SessionBus.asyncCall({ "service": "org.kde.Solid.PowerManagement",
-                "path": "/org/kde/Solid/PowerManagement/PolicyAgent",
-                "iface": "org.kde.Solid.PowerManagement.PolicyAgent",
-                "member": "ReleaseInhibition", "signature": "(u)", "arguments": [inhibitCookie] });
-            r.finished.connect(() => r.destroy());
-            inhibitCookie = -1;
-        } else {
-            const r = SessionBus.asyncCall({ "service": "org.kde.Solid.PowerManagement",
-                "path": "/org/kde/Solid/PowerManagement/PolicyAgent",
-                "iface": "org.kde.Solid.PowerManagement.PolicyAgent",
-                "member": "AddInhibition", "signature": "(uss)",
-                "arguments": [5, "Chromatia Dashboard", "Sleep inhibited manually"] });
-            r.finished.connect(() => { if (!r.isError) root.inhibitCookie = Number(r.value); r.destroy(); });
-        }
+        if (inhibitCookie < 0) policyAgent("AddInhibition", "(uss)", [5, "Chromatia Dashboard", "Sleep inhibited manually"], v => root.inhibitCookie = Number(v));
+        else { policyAgent("ReleaseInhibition", "(u)", [inhibitCookie]); inhibitCookie = -1; }
     }
 
     // ---- Programme mit Ton: Streams pro Programm zusammenfassen ----
@@ -120,12 +112,11 @@ PlasmoidItem {
         return root.aliasFor(n + " " + bin, n);
     }
 
-    // ---- Optional device/app filters and nicer names (Chromatia settings) ----
-    // aliases: JSON list of [regex, name], e.g. [["sharkoon","Headset"],["whispr","OpenWhispr"]]
-    function rx(t) { try { return t ? new RegExp(t, "i") : null; } catch (e) { return null; } }
-    readonly property var aliasList: { try { return JSON.parse(Plasmoid.configuration.aliases || "[]"); } catch (e) { return []; } }
+    // ---- Nicer app and device names (optional, no settings page) ----
+    // aliases: JSON list of [regex, name], e.g. [["whispr","OpenWhispr"]]
+    readonly property var aliasList: jsonOr(Plasmoid.configuration.aliases, [])
     function aliasFor(text, fallback) {
-        for (const a of aliasList) { const r = rx(a[0]); if (r && r.test(text)) return a[1]; }
+        for (const a of aliasList) { try { if (a[0] && new RegExp(a[0], "i").test(text)) return a[1]; } catch (e) {} }
         return fallback;
     }
     function regroup() {
@@ -152,7 +143,6 @@ PlasmoidItem {
         }
     }
 
-    // Lesbare Gerätenamen
     // ---- Notifications: history for the dashboard tab, popups at the top right ----
     NotificationManager.Notifications {
         id: notifHistory
@@ -214,7 +204,7 @@ PlasmoidItem {
     readonly property var hiddenOutputs: jsonOr(Plasmoid.configuration.hiddenOutputs, [])
     readonly property var hiddenInputs: jsonOr(Plasmoid.configuration.hiddenInputs, [])
     readonly property var deviceNames: jsonOr(Plasmoid.configuration.deviceNames, ({}))
-    function niceName(desc, mic, name) {
+    function niceName(desc, name) {
         if (name && deviceNames[name]) return deviceNames[name];
         const d = desc || "";
         return aliasFor(d, d);
@@ -362,7 +352,6 @@ PlasmoidItem {
                     clip: true
 
                     Item {
-                        id: content
                         width: root.dashW
                         height: root.fullH
                         y: -(1 - root.reveal) * 40
@@ -1066,13 +1055,8 @@ PlasmoidItem {
         id: dr
         property bool mic: false
         readonly property bool isMonitor: String(model.Name || "").indexOf(".monitor") >= 0
-        // optional filters: outputs matching outputExclude are hidden, only mics matching inputInclude are shown
-        readonly property string desc: String(model.Description || "")
-        readonly property var ex: root.rx(Plasmoid.configuration.outputExclude)
-        readonly property var inc: root.rx(Plasmoid.configuration.inputInclude)
         readonly property bool hiddenBySettings: (mic ? root.hiddenInputs : root.hiddenOutputs).indexOf(String(model.Name || "")) >= 0
-        readonly property bool wanted: !hiddenBySettings && (mic ? (!inc || inc.test(desc)) : (!ex || !ex.test(desc)))
-        visible: !isMonitor && wanted
+        visible: !isMonitor && !hiddenBySettings
         width: parent ? parent.width : 300
         height: visible ? 64 : 0
         radius: 14
@@ -1092,7 +1076,7 @@ PlasmoidItem {
             anchors.left: dot.right; anchors.leftMargin: 10
             anchors.right: parent.right; anchors.rightMargin: 12
             anchors.verticalCenter: dot.verticalCenter
-            text: root.niceName(model.Description, dr.mic, String(model.Name || ""))
+            text: root.niceName(model.Description, String(model.Name || ""))
             color: root.cText
             font.pixelSize: 13
             font.bold: model.Default

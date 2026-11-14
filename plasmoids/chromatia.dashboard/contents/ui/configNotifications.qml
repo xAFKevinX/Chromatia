@@ -3,14 +3,9 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.kcmutils as KCM
 
-KCM.SimpleKCM {
+ConfigPage {
     id: page
-    property bool cfg_chromatiaPopups
-    property int cfg_popupSeconds
-    property bool cfg_hideInFullscreen
-    property bool cfg_openNotificationsFirst
 
     Kirigami.FormLayout {
         QQC2.CheckBox {

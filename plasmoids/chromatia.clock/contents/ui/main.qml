@@ -38,7 +38,6 @@ PlasmoidItem {
                 spacing: Math.round(18 * face.s)
 
                 Row {
-                    id: timeRow
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: Math.round(2 * face.s)
                     Text {
