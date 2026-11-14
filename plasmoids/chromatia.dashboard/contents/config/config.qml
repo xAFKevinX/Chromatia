@@ -18,6 +18,11 @@ ConfigModel {
         source: "configBar.qml"
     }
     ConfigCategory {
+        name: "Dashboard"
+        icon: "view-grid-symbolic"
+        source: "configDashboard.qml"
+    }
+    ConfigCategory {
         name: "Audio"
         icon: "audio-volume-high"
         source: "configAudio.qml"

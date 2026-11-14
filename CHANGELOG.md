@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.0
+- **Quick toggles**: round Wi-Fi and Bluetooth buttons next to the gear at the top of the dashboard. Click to switch on or off; filled in your accent color while on. A button only appears if your computer has the hardware for it.
+- New settings page **Dashboard** in Chromatia Settings to hide either button, e.g. on a desktop PC. The tabs move back to the center when the buttons are hidden.
+- The update pill no longer covers the Notifications tab.
+
 ## 1.5.1
 - **Launcher button**: a grid button at the left end of the bar opens the app launcher (the same one as the bottom-left hot corner). New settings page **Bar** in Chromatia Settings to hide it. It is on by default.
 - **Wallpaper gallery**: a folder button at the top right opens your wallpaper folder in the file manager.

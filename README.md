@@ -117,6 +117,7 @@ git pull
 |---|---|
 | Left edge, middle | wallpaper gallery |
 | Top edge, middle | dashboard (tabs: Dashboard · Audio · System · Notes · Notifications) |
+| Wi-Fi / Bluetooth buttons (dashboard, top right) | switch on or off (hide them in Chromatia Settings → Dashboard) |
 | Grid button (bar, far left) | application launcher (hide it in Chromatia Settings → Bar) |
 | Bottom left pills | click: switch · `+`: new desktop · right-click: remove · scroll: switch · hover: preview |
 | Dock | click: activate / minimize / cycle windows · middle-click: new window · right-click: pin, close |

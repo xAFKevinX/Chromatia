@@ -367,10 +367,13 @@ PlasmoidItem {
                         y: -(1 - root.reveal) * 40
                         opacity: Math.min(1, root.reveal * 1.8)
 
-                        // tabs
+                        // tabs: centered, moved left by half the quick toggles (and further if the update pill needs room)
                         Row {
                             id: tabs
                             anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.horizontalCenterOffset: Math.min(quick.width > 0 ? -(quick.width + 8) / 2 : 0,
+                                                                     rightPills.x - 16 - (root.dashW + width) / 2)
+                            Behavior on anchors.horizontalCenterOffset { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
                             y: 12
                             spacing: 8
 
@@ -427,54 +430,59 @@ PlasmoidItem {
                             }
                         }
 
-                        // Update available: glowing pill left of the gear
-                        Rectangle {
-                            visible: root.update.available === true
-                            anchors.right: gearButton.left
-                            anchors.rightMargin: 8
-                            y: 12
-                            height: 34
-                            width: updRow.implicitWidth + 24
-                            radius: 17
-                            color: root.accent
-                            SequentialAnimation on opacity {
-                                running: root.update.available === true && !root.showUpdate
-                                loops: Animation.Infinite
-                                NumberAnimation { to: 0.65; duration: 900; easing.type: Easing.InOutSine }
-                                NumberAnimation { to: 1.0; duration: 900; easing.type: Easing.InOutSine }
-                            }
-                            Row {
-                                id: updRow
-                                anchors.centerIn: parent
-                                spacing: 6
-                                Kirigami.Icon { width: 16; height: 16; source: "update-none-symbolic"; isMask: true; color: "white"; anchors.verticalCenter: parent.verticalCenter }
-                                Text { text: "Update"; color: "white"; font.pixelSize: 13; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
-                            }
-                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.showUpdate = !root.showUpdate }
-                        }
-
-                        // Settings: opens the widget's configuration dialog (= Chromatia Settings)
-                        Rectangle {
-                            id: gearButton
+                        // right: update pill, Wi-Fi/Bluetooth toggles, gear
+                        Row {
+                            id: rightPills
                             anchors.right: parent.right
                             anchors.rightMargin: 16
                             y: 12
-                            width: 34; height: 34; radius: 17
-                            color: gearMouse.containsMouse ? root.cCard2 : root.cCard
-                            Behavior on color { ColorAnimation { duration: 160 } }
-                            Kirigami.Icon {
-                                anchors.centerIn: parent
-                                width: 16; height: 16
-                                source: "configure-symbolic"
-                                isMask: true
-                                color: root.cText
+                            spacing: 8
+
+                            // Update available: glowing pill left of the gear
+                            Rectangle {
+                                visible: root.update.available === true
+                                height: 34
+                                width: updRow.implicitWidth + 24
+                                radius: 17
+                                color: root.accent
+                                SequentialAnimation on opacity {
+                                    running: root.update.available === true && !root.showUpdate
+                                    loops: Animation.Infinite
+                                    NumberAnimation { to: 0.65; duration: 900; easing.type: Easing.InOutSine }
+                                    NumberAnimation { to: 1.0; duration: 900; easing.type: Easing.InOutSine }
+                                }
+                                Row {
+                                    id: updRow
+                                    anchors.centerIn: parent
+                                    spacing: 6
+                                    Kirigami.Icon { width: 16; height: 16; source: "update-none-symbolic"; isMask: true; color: "white"; anchors.verticalCenter: parent.verticalCenter }
+                                    Text { text: "Update"; color: "white"; font.pixelSize: 13; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
+                                }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.showUpdate = !root.showUpdate }
                             }
-                            MouseArea {
-                                id: gearMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: { root.requestClose(); Plasmoid.internalAction("configure").trigger(); }
+
+                            Loader { id: quick; Component.onCompleted: setSource("QuickToggles.qml", { dash: root }) }
+
+                            // Settings: opens the widget's configuration dialog (= Chromatia Settings)
+                            Rectangle {
+                                id: gearButton
+                                width: 34; height: 34; radius: 17
+                                color: gearMouse.containsMouse ? root.cCard2 : root.cCard
+                                Behavior on color { ColorAnimation { duration: 160 } }
+                                Kirigami.Icon {
+                                    anchors.centerIn: parent
+                                    width: 16; height: 16
+                                    source: "configure-symbolic"
+                                    isMask: true
+                                    color: root.cText
+                                }
+                                MouseArea {
+                                    id: gearMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: { root.requestClose(); Plasmoid.internalAction("configure").trigger(); }
+                                }
                             }
                         }
 

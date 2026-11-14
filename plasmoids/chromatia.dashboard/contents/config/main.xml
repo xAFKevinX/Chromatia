@@ -10,6 +10,8 @@
     <entry name="waveMedia" type="Bool"><default>true</default></entry>
     <entry name="waveVolume" type="Bool"><default>true</default></entry>
     <entry name="launcherButton" type="Bool"><default>true</default></entry>
+    <entry name="wifiToggle" type="Bool"><default>true</default></entry>
+    <entry name="bluetoothToggle" type="Bool"><default>true</default></entry>
     <entry name="aliases" type="String"><default>[]</default></entry>
     <!-- Chromatia Settings -->
     <entry name="hiddenOutputs" type="String"><default>[]</default></entry>
