@@ -52,6 +52,7 @@ PlasmaCore.Dialog {
         if (!active || suppressed) return;
         shown.insert(0, {
             nid: nid,
+            gone: false,
             app: role(i, R.ApplicationNameRole) || "",
             summary: role(i, R.SummaryRole) || "",
             body: role(i, R.BodyRole) || "",
@@ -91,9 +92,20 @@ PlasmaCore.Dialog {
         }
 
         ListModel { id: shown }
+        Timer {          // drops cards once they slid out
+            id: dropper
+            interval: 320
+            onTriggered: { for (let k = shown.count - 1; k >= 0; k--) if (shown.get(k).gone) shown.remove(k); }
+        }
         Connections {    // new rows in the history → popups (newest first, so walk last → first)
             target: win.source
             function onRowsInserted(parent, first, last) { for (let i = last; i >= first; i--) win.addRow(i); }
+            // the app withdrew it (e.g. Discord when a call is answered or ends) → slide out too
+            function onRowsAboutToBeRemoved(parent, first, last) {
+                for (let i = first; i <= last; i++)
+                    for (let k = 0; k < shown.count; k++)
+                        if (shown.get(k).nid === win.role(i, NotificationManager.Notifications.IdRole)) cards.itemAt(k).leave("hide");
+            }
         }
         TaskManager.TasksModel { id: tasks; groupMode: TaskManager.TasksModel.GroupDisabled }
         Repeater {
@@ -119,11 +131,12 @@ PlasmaCore.Dialog {
             spacing: 8
 
             Repeater {
+                id: cards
                 model: shown
                 delegate: Item {
                     id: slot
                     required property int index
-                    required property int nid
+                    required property real nid
                     required property string app
                     required property string summary
                     required property string body
@@ -142,13 +155,9 @@ PlasmaCore.Dialog {
                     function leave(how) {
                         if (leaving) return;
                         leaving = true;
+                        shown.setProperty(index, "gone", true);
+                        dropper.restart();
                         if (how === "close") { const ix = pc.idx(); if (ix.valid) win.source.close(ix); }
-                        dropTimer.start();
-                    }
-                    Timer {
-                        id: dropTimer
-                        interval: 320
-                        onTriggered: { for (let k = 0; k < shown.count; k++) if (shown.get(k).nid === slot.nid) { shown.remove(k); break; } }
                     }
                     Component.onCompleted: Qt.callLater(() => entered = true)
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.1
+- **Fix: notifications from Flatpak apps** (e.g. Vesktop/Discord) could leave an empty box at the top right after they disappeared. Their close and action buttons didn't work either.
+- Popups now also slide out when the app withdraws its notification, e.g. when you answer a call.
+
 ## 1.6.0
 - **Quick toggles**: round Wi-Fi and Bluetooth buttons next to the gear at the top of the dashboard. Click to switch on or off; filled in your accent color while on. A button only appears if your computer has the hardware for it.
 - New settings page **Dashboard** in Chromatia Settings to hide either button, e.g. on a desktop PC. The tabs move back to the center when the buttons are hidden.

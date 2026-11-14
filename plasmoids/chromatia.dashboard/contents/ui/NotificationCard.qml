@@ -24,7 +24,7 @@ Rectangle {
     signal closeClicked()
     signal actionTriggered()
 
-    property int nid: -1                // popups: notification id (rows move, ids don't)
+    property real nid: -1               // popups: notification id (rows move, ids don't; real: portal ids exceed int)
     function idx() {
         if (nid < 0) return nmodel.index(row, 0);
         for (let i = 0; i < nmodel.count; i++) {
