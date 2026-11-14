@@ -32,7 +32,7 @@ https://github.com/user-attachments/assets/17dc0145-0b8f-4d3d-8fab-c6801b7a00a2
 
 ## Requirements
 
-- KDE Plasma 6 on Wayland (made on Plasma 6.8 / Fedora 44)
+- KDE Plasma 6 on Wayland – **tested only on Fedora 44 with Plasma 6.8**. Other distributions may work, see [Issues & requests](#issues--requests)
 - A few packages (installed in step 1 below)
 - **[Panel Colorizer](https://github.com/luisbocanegra/plasma-panel-colorizer)** for the island bar and the frame panels (step 2)
 - Optional: **KZones** for window snapping, the **Network Speed** widget, **Mission Center** (opens from the dashboard)
@@ -150,6 +150,17 @@ The wallpaper folder can be changed in the settings of the wallpaper gallery wid
 - **An Electron app crashes when the accent changes** – that comes from KDE's GTK settings sync (kded module *gtkconfig*). Disable it or set `SystemAccent=false`.
 - **Video wallpaper stays black** – make sure the Qt Multimedia FFmpeg backend is installed.
 - **Changed QML doesn't show up** – restart Plasma: `systemctl --user restart plasma-plasmashell`.
+
+## Issues & requests
+
+Chromatia is a personal project that I share as it is. I test it only on my own setup: **Fedora 44, KDE Plasma 6.8, Wayland**. Other distributions and Plasma versions may work, but I don't test them and can't promise support.
+
+Bug reports and ideas are welcome as [GitHub issues](https://github.com/xAFKevinX/Chromatia/issues). Please include:
+- your distribution and Plasma version (`plasmashell --version`)
+- what went wrong, and what `chromatia-sync` prints when you run it by hand
+- the Plasma log if a widget misbehaves: `journalctl --user -u plasma-plasmashell -b`
+
+I look at them when I find the time, but I can't promise to fix or build everything. Pull requests are welcome.
 
 ## Uninstall
 
