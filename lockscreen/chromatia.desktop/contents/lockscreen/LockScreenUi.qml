@@ -239,7 +239,19 @@ Item {
             duration: Kirigami.Units.veryLongDuration * 2
         }
 
-        Component.onCompleted: launchAnimation.start();
+        Component.onCompleted: {
+            launchAnimation.start();
+            // KDE activates the screen under the mouse cursor. Wayland often doesn't report the cursor
+            // before it moves, then the first screen in the list got the keyboard, often a side screen.
+            // Start on the primary screen instead (Qt lists it first); moving the mouse still switches.
+            const screens = Qt.application.screens;
+            if (screens.length > 1 && lockScreenRoot.Screen.name === screens[0].name) primaryActivate.start();
+        }
+        Timer {     // after kscreenlocker's own activation of "the screen under the cursor"
+            id: primaryActivate
+            interval: 300
+            onTriggered: { lockScreenRoot.Window.window.requestActivate(); lockScreenRoot.uiVisible = true; }
+        }
 
         // video wallpaper (same as on the desktop), muted; the still image stays underneath
         // until the first frame. Pauses after three minutes without input to save power.

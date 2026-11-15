@@ -10,7 +10,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.kscreenlocker as ScreenLocker
 import org.kde.breeze.components
 
-Item {
+FocusScope {        // like KDE's SessionManagementScreen: keeps the focus on the password field
     id: block
     required property QtObject pal
     property real s: 1

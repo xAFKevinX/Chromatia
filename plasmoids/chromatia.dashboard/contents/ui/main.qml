@@ -305,8 +305,12 @@ PlasmoidItem {
         Timer {
             id: closeTimer
             interval: 380
+            // keeps checking while something holds the dashboard open: focus and hover can end without
+            // an event that restarts this timer (e.g. a click elsewhere), then it used to stay open
+            repeat: true
             onTriggered: {
-                if (trigger.containsMouse || bodyHover.hovered || notesArea.activeFocus) return;
+                if (trigger.containsMouse || bodyHover.hovered || (root.tab === 3 && notesArea.activeFocus)) return;
+                stop();
                 rep.close();
             }
         }

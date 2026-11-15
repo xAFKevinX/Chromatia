@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.2
+- **Lock screen with two or more screens**: the password field now always starts on your primary screen and takes the keyboard there, so you can just start typing. Before, it often landed on a side screen (KDE picks the screen under the mouse, which Wayland often doesn't report) and typing did nothing until you clicked. Moving the mouse to another screen still moves the password field there.
+- **Fix: the dashboard sometimes didn't close** after you had clicked into the notes once. It now keeps checking while it is open and closes as soon as the mouse is gone.
+
 ## 1.7.1
 - **Video wallpapers use far less power**, measured on an RTX 5060 Ti: about 18 W less at the wall, now nearly the same as a still image.
   - With an NVIDIA card, Chromatia decodes video wallpapers on the CPU. NVIDIA's driver keeps the whole card at full clocks while its video decoder is in use, which costs ~9 W even for a small 1080p video. A modern CPU decodes that on the side. AMD and Intel keep hardware decoding. Takes effect after the next login.
