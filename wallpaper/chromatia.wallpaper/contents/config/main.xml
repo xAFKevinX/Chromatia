@@ -17,5 +17,6 @@
     <entry name="FrameRadius" type="Int"><default>0</default></entry>
     <entry name="PauseWhenCovered" type="Bool"><default>true</default></entry>
     <entry name="PauseWhenTiled" type="Bool"><default>true</default></entry>
+    <entry name="PauseWhenLocked" type="Bool"><default>true</default></entry>
   </group>
 </kcfg>

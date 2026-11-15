@@ -49,6 +49,7 @@ class Visualizer(dbus.service.Object):
         super().__init__(dbus.service.BusName(NAME, bus), PATH)
         self.values = [0.0] * BARS
         self.proc = None
+        self.watch = None
         self.buf = b""
         self.last_call = time.monotonic()
         GLib.timeout_add_seconds(1, self.housekeeping)
@@ -69,10 +70,12 @@ class Visualizer(dbus.service.Object):
         self.proc = subprocess.Popen(["cava", "-p", CONF], stdout=subprocess.PIPE,
                                      stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
         os.set_blocking(self.proc.stdout.fileno(), False)
-        GLib.io_add_watch(self.proc.stdout.fileno(), GLib.IO_IN | GLib.IO_HUP, self.read)
+        self.watch = GLib.io_add_watch(self.proc.stdout.fileno(),
+                                       GLib.IO_IN | GLib.IO_HUP | GLib.IO_ERR | GLib.IO_NVAL, self.read)
 
     def read(self, fd, cond):
-        if cond & GLib.IO_HUP:
+        if cond & (GLib.IO_HUP | GLib.IO_ERR | GLib.IO_NVAL) or self.proc is None:
+            self.watch = None                  # returning False removes the watch
             self.stop()
             return False
         try:
@@ -94,12 +97,18 @@ class Visualizer(dbus.service.Object):
         return True
 
     def stop(self):
+        # Remove the watch before the pipe closes: a watch on a closed fd fires nonstop
+        # (100 % CPU until the helper exits).
+        if self.watch is not None:
+            GLib.source_remove(self.watch)
+            self.watch = None
         if self.proc is not None:
             self.proc.terminate()
             try:
                 self.proc.wait(timeout=2)
             except subprocess.TimeoutExpired:
                 self.proc.kill()
+            self.proc.stdout.close()
             self.proc = None
             self.values = [0.0] * BARS
 

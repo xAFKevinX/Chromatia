@@ -23,6 +23,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -36,6 +37,7 @@ CONFIG = os.path.join(HOME, ".config/chromatia/chromatia.conf")
 OUTDIR = os.path.join(HOME, ".local/share/chromatia/framed")      # framed copies for org.kde.image
 STATE = os.path.join(HOME, ".local/state/chromatia/state.json")
 THUMBS = os.path.join(HOME, ".cache/chromatia/thumbs")
+LITE = os.path.join(HOME, ".cache/chromatia/lite")             # 30 fps copies of smoother videos
 LOCKRC = os.path.join(HOME, ".config/kscreenlockerrc")
 # present while the Chromatia lock screen is switched on (KWin starts the lock screen with this shell)
 LOCK_DROPIN = os.path.join(HOME, ".config/systemd/user/plasma-kwin_wayland.service.d/chromatia-lockscreen.conf")
@@ -134,6 +136,52 @@ def still_of(path, width=1280):
                         "pngenc", "snapshot=true", "!", "filesink", f"location={out}"],
                        capture_output=True, timeout=60)
     return out if os.path.exists(out) else None
+
+
+def video_fps(path):
+    try:
+        out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+                              "stream=avg_frame_rate", "-of", "csv=p=0", path],
+                             capture_output=True, text=True, timeout=20).stdout.strip()
+        num, _, den = out.partition("/")
+        return float(num) / float(den or 1)
+    except Exception:
+        return 0
+
+
+def lite_of(path):
+    """The 30 fps copy of a smoother video (half the decoding work), made once in the background.
+    Until it is ready (or without ffmpeg) the original plays."""
+    if not is_video(path) or not enabled("videoLite"):
+        return path
+    out = os.path.join(LITE, os.path.basename(path) + ".30fps.mp4")
+    if os.path.exists(out) and os.path.getmtime(out) >= os.path.getmtime(path):
+        return out
+    part = out + ".part.mp4"
+    busy = os.path.exists(part) and time.time() - os.path.getmtime(part) < 600
+    if not busy and video_fps(path) > 31:
+        # own transient unit: systemd ends every child of chromatia-sync.service with it
+        job = [os.path.abspath(__file__), "--lite", path]
+        if shutil.which("systemd-run"):
+            job = ["systemd-run", "--user", "--quiet", "--collect", "--nice=19"] + job
+        subprocess.Popen(job, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return path
+
+
+def make_lite(path):
+    """ffmpeg: 30 fps, no audio; NVIDIA's encoder if there is one, else x264."""
+    os.makedirs(LITE, exist_ok=True)
+    out = os.path.join(LITE, os.path.basename(path) + ".30fps.mp4")
+    part = out + ".part.mp4"
+    base = ["nice", "-n", "19", "ffmpeg", "-y", "-v", "error", "-i", path, "-an", "-vf", "fps=30", "-movflags", "+faststart"]
+    for enc in (["-c:v", "h264_nvenc", "-preset", "p5", "-cq", "21"], ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20"]):
+        if subprocess.run(base + enc + [part], capture_output=True, timeout=1800).returncode == 0:
+            os.replace(part, out)
+            log(f"30 fps copy: {os.path.basename(path)}")
+            return True
+    if os.path.exists(part):
+        os.remove(part)
+    return False
 
 
 def accent():
@@ -397,7 +445,7 @@ def write_lockscreen(acc, original):
     still = still_of(original, 1920)
     if not still:
         return
-    video = "file://" + original if is_video(original) else ""
+    video = "file://" + lite_of(original) if is_video(original) else ""
     want = {("Greeter",): {"WallpaperPlugin": "org.kde.image"},
             ("Greeter", "Wallpaper", "org.kde.image", "General"): {"Image": "file://" + still, "PreviewImage": "file://" + still},
             ("Greeter", "LnF", "General"): {"accentColor": hexc(acc), "video": video}}
@@ -489,11 +537,12 @@ def make_framed(src, out, screen, color):
 def fingerprint(walls):
     d = dashboard_settings()
     extra = [d.get(k, "") for k in ("accentMode", "fixedAccent", "systemAccent", "appColors", "chromatiaPopups",
-                                         "pauseWhenCovered", "pauseWhenTiled", "launcherButton")]
+                                         "pauseWhenCovered", "pauseWhenTiled", "pauseWhenLocked", "videoLite",
+                                         "videoMainOnly", "launcherButton")]
     return json.dumps([sorted((str(k), v[2], v[1] or "") for k, v in walls.items()), extra])
 
 
-def main():
+def main(force=False):
     direct = sys.argv[2] if len(sys.argv) > 2 and sys.argv[1] == "--set" else None
     if not direct:
         time.sleep(2)                                    # let Plasma finish writing its config
@@ -506,14 +555,15 @@ def main():
     walls = desktop_wallpapers()
     # Plasma rewrites its config for many reasons. If the wallpapers did not change, do
     # nothing at all: every evaluateScript call blocks Plasma for a moment (visible hitch).
-    if not direct and state.get("fingerprint") == fingerprint(walls):
+    if not direct and not force and state.get("fingerprint") == fingerprint(walls):
         return
     if direct:
         for idx in walls:
             state[str(idx)] = direct
     else:
         for idx, (cid, current, plugin) in walls.items():
-            if current and os.path.dirname(current) != OUTDIR and os.path.exists(current):
+            # our own copies (framed, 30 fps, still frames) stand for the original remembered in state
+            if current and os.path.dirname(current) not in (OUTDIR, LITE, THUMBS) and os.path.exists(current):
                 state[str(idx)] = current
     main_original = state.get("0") or next(iter(state.values()), None)
     still = still_of(main_original) if main_original and os.path.exists(main_original) else None
@@ -531,11 +581,14 @@ def main():
             continue
         if plugin == OWN:
             sc = scr[idx]
-            own[cid] = {"Image": "file://" + original,
+            # side screens may show a still frame instead of the video (Settings → Wallpaper)
+            side = idx != 0 and is_video(original) and setting("videoMainOnly", "false").lower() == "true"
+            shown = (still_of(original, 1920) if side else None) or lite_of(original)
+            own[cid] = {"Image": "file://" + shown,
                         "FrameTop": max(FRAME, sc.get("top", 0)), "FrameBottom": max(FRAME, sc["bottom"]),
                         "FrameLeft": max(FRAME, sc.get("left", 0)), "FrameRight": max(FRAME, sc.get("right", 0)),
                         "FrameRadius": RADIUS, "PauseWhenCovered": enabled("pauseWhenCovered"),
-                        "PauseWhenTiled": enabled("pauseWhenTiled")}
+                        "PauseWhenTiled": enabled("pauseWhenTiled"), "PauseWhenLocked": enabled("pauseWhenLocked")}
             framed[idx] = still_of(original) or ""
             continue
         if is_video(original):
@@ -631,6 +684,10 @@ def make_thumbs(gallery):
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--thumbs":
         make_thumbs(sys.argv[2] if len(sys.argv) > 2 else os.path.join(pictures_dir(), "Wallpapers"))
+        sys.exit(0)
+    if len(sys.argv) > 2 and sys.argv[1] == "--lite":          # background job started by lite_of()
+        if make_lite(sys.argv[2]):
+            main(force=True)                                  # switch to the copy now
         sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "--still":         # full-size still of the main wallpaper (chromatia-login)
         st = json.load(open(STATE)) if os.path.exists(STATE) else {}

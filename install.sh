@@ -76,6 +76,12 @@ if [[ -z "$first" ]]; then
     def=$(ls /usr/share/wallpapers/Next/contents/images_dark/*.png /usr/share/wallpapers/Next/contents/images/*.png 2>/dev/null | sort -V | tail -n1)
     if [[ -n "$def" ]]; then cp "$def" "$gallery/plasma-default.png"; first="$gallery/plasma-default.png"; fi
 fi
+# NVIDIA: video wallpapers decoded on the CPU. CUDA decoding keeps the card at full clocks,
+# which costs ~10 W more than decoding 1080p on the CPU. AMD/Intel keep hardware decoding.
+if [[ -e /proc/driver/nvidia/version ]]; then
+    mkdir -p "$HOME/.config/systemd/user/plasma-plasmashell.service.d"
+    install -m 644 systemd/chromatia-video-decoding.conf "$HOME/.config/systemd/user/plasma-plasmashell.service.d/"
+fi
 systemctl --user daemon-reload
 systemctl --user enable --now chromatia-sync.path >/dev/null 2>&1
 

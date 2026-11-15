@@ -136,6 +136,19 @@ WallpaperItem {
     property bool fullCover: false
     property bool tiledCover: false
     readonly property bool covered: (root.configuration.PauseWhenCovered && fullCover) || (root.configuration.PauseWhenTiled && tiledCover)
+                                    || (root.configuration.PauseWhenLocked && locked)
+    // screen locked (also after KDE's auto-lock when you're away): nothing of the desktop is visible
+    property bool locked: false
+    Timer {
+        interval: 3000; repeat: true; triggeredOnStart: true
+        running: root.configuration.PauseWhenLocked
+        onRunningChanged: if (!running) root.locked = false
+        onTriggered: {
+            const reply = SessionBus.asyncCall({ "service": "org.freedesktop.ScreenSaver", "path": "/ScreenSaver",
+                "iface": "org.freedesktop.ScreenSaver", "member": "GetActive", "signature": "()", "arguments": [] });
+            reply.finished.connect(() => { if (!reply.isError) root.locked = !!reply.value; reply.destroy(); });
+        }
+    }
     Timer { id: coverTimer; interval: 250; onTriggered: {
         const rects = [];
         let full = false;

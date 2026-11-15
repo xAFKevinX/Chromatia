@@ -14,6 +14,8 @@ kpackagetool6 --type Plasma/Wallpaper --remove chromatia.wallpaper >/dev/null 2>
 # lock screen: KWin goes back to KDE's lock screen at the next login (until then KDE's
 # lock screen is used as well, because the package is gone)
 rm -f "$HOME/.config/systemd/user/plasma-kwin_wayland.service.d/chromatia-lockscreen.conf"
+rm -f "$HOME/.config/systemd/user/plasma-plasmashell.service.d/chromatia-video-decoding.conf"
+rmdir "$HOME/.config/systemd/user/plasma-plasmashell.service.d" 2>/dev/null
 rmdir "$HOME/.config/systemd/user/plasma-kwin_wayland.service.d" 2>/dev/null
 kpackagetool6 --type Plasma/Shell --remove chromatia.desktop >/dev/null 2>&1
 for k in accentColor video; do kwriteconfig6 --file kscreenlockerrc --group Greeter --group LnF --group General --key $k --delete; done

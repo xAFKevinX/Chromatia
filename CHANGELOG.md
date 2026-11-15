@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.1
+- **Video wallpapers use far less power**, measured on an RTX 5060 Ti: about 18 W less at the wall, now nearly the same as a still image.
+  - With an NVIDIA card, Chromatia decodes video wallpapers on the CPU. NVIDIA's driver keeps the whole card at full clocks while its video decoder is in use, which costs ~9 W even for a small 1080p video. A modern CPU decodes that on the side. AMD and Intel keep hardware decoding. Takes effect after the next login.
+  - 60 fps videos get a 30 fps copy, made once in the background (a few seconds with ffmpeg).
+  - Chromatia Settings → Wallpaper → **Videos only on the main screen**: the other screens show a still frame.
+  - Videos pause while the screen is locked.
+- **Fix: the visualizer helper used a full CPU core** for a minute after every pause of music or video.
+
 ## 1.7.0
 - **Lock screen in the Chromatia look**: big clock, your wallpaper with the frame (videos play too, muted, and pause after 3 minutes without input), the accent color and a media island with the wavy progress. Move the mouse or press a key for the unlock card: avatar, round password field and pills for sleep, switch user, restart and shut down. Restart and shut down ask once more ("Shut down?") before they act. Unlocking itself is KDE's own code, unchanged.
 - The lock screen follows every wallpaper change automatically.

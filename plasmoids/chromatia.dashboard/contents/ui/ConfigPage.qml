@@ -23,6 +23,9 @@ KCM.SimpleKCM {
     property bool cfg_openNotificationsFirst; property bool cfg_openNotificationsFirstDefault
     property bool cfg_pauseWhenCovered; property bool cfg_pauseWhenCoveredDefault
     property bool cfg_pauseWhenTiled; property bool cfg_pauseWhenTiledDefault
+    property bool cfg_pauseWhenLocked; property bool cfg_pauseWhenLockedDefault
+    property bool cfg_videoLite; property bool cfg_videoLiteDefault
+    property bool cfg_videoMainOnly; property bool cfg_videoMainOnlyDefault
     property int cfg_accentMode; property int cfg_accentModeDefault
     property string cfg_fixedAccent; property string cfg_fixedAccentDefault
 }
