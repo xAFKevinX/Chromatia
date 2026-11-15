@@ -1,0 +1,13 @@
+{
+    "KPackageStructure": "Plasma/Shell",
+    "KPlugin": {
+        "Authors": [ { "Name": "Chromatia" } ],
+        "Description": "Chromatia lock screen. Only the lock screen lives here, everything else falls back to the default Plasma desktop shell.",
+        "Id": "chromatia.desktop",
+        "License": "GPL-2.0-or-later",
+        "Name": "Chromatia Lock Screen",
+        "Version": "1.0"
+    },
+    "X-Plasma-APIVersion": "2",
+    "X-Plasma-FallbackPackage": "org.kde.plasma.desktop"
+}

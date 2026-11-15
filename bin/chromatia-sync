@@ -36,6 +36,9 @@ CONFIG = os.path.join(HOME, ".config/chromatia/chromatia.conf")
 OUTDIR = os.path.join(HOME, ".local/share/chromatia/framed")      # framed copies for org.kde.image
 STATE = os.path.join(HOME, ".local/state/chromatia/state.json")
 THUMBS = os.path.join(HOME, ".cache/chromatia/thumbs")
+LOCKRC = os.path.join(HOME, ".config/kscreenlockerrc")
+# present while the Chromatia lock screen is switched on (KWin starts the lock screen with this shell)
+LOCK_DROPIN = os.path.join(HOME, ".config/systemd/user/plasma-kwin_wayland.service.d/chromatia-lockscreen.conf")
 
 FRAME = 10        # frame width in logical pixels (panels on an edge make it wider)
 RADIUS = 25       # radius of the inner corners
@@ -119,15 +122,15 @@ def is_video(path):
     return str(path).lower().endswith(VIDEO_EXT)
 
 
-def still_of(path):
+def still_of(path, width=1280):
     """Still frame of a video (for colors and previews), cached."""
     if not is_video(path):
         return path
     os.makedirs(THUMBS, exist_ok=True)
-    out = os.path.join(THUMBS, os.path.basename(path) + ".still.png")
+    out = os.path.join(THUMBS, os.path.basename(path) + (".still.png" if width == 1280 else f".still{width}.png"))
     if not (os.path.exists(out) and os.path.getmtime(out) >= os.path.getmtime(path)):
         subprocess.run(["gst-launch-1.0", "-q", "filesrc", f"location={path}", "!", "decodebin", "!",
-                        "videoconvert", "!", "videoscale", "!", "video/x-raw,width=1280", "!",
+                        "videoconvert", "!", "videoscale", "!", f"video/x-raw,width={width}", "!",
                         "pngenc", "snapshot=true", "!", "filesink", f"location={out}"],
                        capture_output=True, timeout=60)
     return out if os.path.exists(out) else None
@@ -386,6 +389,27 @@ if (n>0) print("colors updated: "+n);
 """ % (OWN, OWN))
 
 
+def write_lockscreen(acc, original):
+    """Chromatia lock screen (only when switched on): the desktop's wallpaper and accent color.
+    Videos play on the lock screen too, a full-size still frame shows until the first frame."""
+    if not os.path.exists(LOCK_DROPIN) or not original or not os.path.exists(original):
+        return
+    still = still_of(original, 1920)
+    if not still:
+        return
+    video = "file://" + original if is_video(original) else ""
+    want = {("Greeter",): {"WallpaperPlugin": "org.kde.image"},
+            ("Greeter", "Wallpaper", "org.kde.image", "General"): {"Image": "file://" + still, "PreviewImage": "file://" + still},
+            ("Greeter", "LnF", "General"): {"accentColor": hexc(acc), "video": video}}
+    cp = read_ini(LOCKRC)
+    for groups, values in want.items():
+        for key, val in values.items():
+            if cp.get("][".join(groups), key, fallback="org.kde.image" if key == "WallpaperPlugin" else None) != val:
+                args = [a for g in groups for a in ("--group", g)]
+                subprocess.run(["kwriteconfig6", "--file", "kscreenlockerrc", *args, "--key", key, val], capture_output=True, timeout=10)
+    log(f"lock screen: {os.path.basename(original)}")
+
+
 def plasma_eval(script):
     return subprocess.run(["qdbus-qt6", "org.kde.plasmashell", "/PlasmaShell",
                            "org.kde.PlasmaShell.evaluateScript", script],
@@ -547,6 +571,7 @@ def main():
         if out:
             log(out)
     apply_system_accent(acc)
+    write_lockscreen(acc, main_original)
     write_konsole(acc)
     write_vscode(acc)
     sync_notification_script()
@@ -583,7 +608,7 @@ def make_thumbs(gallery):
         dst = os.path.join(THUMBS, f + ".jpg")
         names.add(f + ".jpg")
         if is_video(src):
-            names.add(f + ".still.png")
+            names.update((f + ".still.png", f + ".still1920.png"))   # 1920: lock screen
         if os.path.exists(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
             continue
         try:
@@ -606,6 +631,15 @@ def make_thumbs(gallery):
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--thumbs":
         make_thumbs(sys.argv[2] if len(sys.argv) > 2 else os.path.join(pictures_dir(), "Wallpapers"))
+        sys.exit(0)
+    if len(sys.argv) > 1 and sys.argv[1] == "--still":         # full-size still of the main wallpaper (chromatia-login)
+        st = json.load(open(STATE)) if os.path.exists(STATE) else {}
+        print(still_of(st["0"], 1920) if st.get("0") and os.path.exists(st["0"]) else "")
+        sys.exit(0)
+    if len(sys.argv) > 1 and sys.argv[1] == "--lockscreen":    # right after switching the lock screen on
+        st = json.load(open(STATE)) if os.path.exists(STATE) else {}
+        h = st.get("accent", "").lstrip("#")
+        write_lockscreen(tuple(int(h[i:i + 2], 16) for i in (0, 2, 4)) if len(h) == 6 else accent(), st.get("0"))
         sys.exit(0)
     try:
         main()

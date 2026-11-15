@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# chromatia-login – the login screen (Plasma Login Manager) in the Chromatia look:
+# your current wallpaper (a still frame for videos) plus your colors, fonts and screen setup,
+# the same files KDE's "Apply Plasma Settings" button copies. Needs root (pkexec) each run.
+# The first run keeps the original state in /var/lib/plasmalogin/chromatia-backup.
+#   chromatia-login            apply
+#   chromatia-login --restore  back to the state before the first run
+set -euo pipefail
+FILES="kdeglobals plasmarc plasma-localerc kcminputrc kxkbrc kwinoutputconfig.json fontconfig/fonts.conf"
+
+if [[ $EUID -ne 0 ]]; then
+    systemctl is-enabled plasmalogin.service >/dev/null 2>&1 || { echo "Plasma Login Manager is not in use, nothing to do."; exit 1; }
+    if [[ "${1:-}" == --restore ]]; then exec pkexec "$(readlink -f "$0")" --restore; fi
+    img=$(chromatia-sync --still)
+    [[ -f "$img" ]] || { echo "No wallpaper found – pick one in the Chromatia gallery first."; exit 1; }
+    exec pkexec "$(readlink -f "$0")" --apply "$img" "${XDG_CONFIG_HOME:-$HOME/.config}"
+fi
+
+home=$(getent passwd plasmalogin | cut -d: -f6)
+[[ -n "$home" && -d "$home" ]] || { echo "plasmalogin user not found"; exit 1; }
+bak="$home/chromatia-backup"
+as() { install -o plasmalogin -g plasmalogin "$@"; }
+
+if [[ "${1:-}" == --restore ]]; then
+    [[ -d "$bak" ]] || { echo "No backup found."; exit 1; }
+    cp -a "$bak/plasmalogin.conf" /etc/plasmalogin.conf
+    rm -rf "$home/.config" "$home/.cache" "$home/wallpapers/chromatia".*
+    [[ -d "$bak/config" ]] && cp -a "$bak/config" "$home/.config"
+    rm -rf "$bak"
+    echo "Login screen restored."; exit 0
+fi
+
+[[ "${1:-}" == --apply && -f "${2:-}" && -d "${3:-}" ]] || { echo "usage: chromatia-login"; exit 1; }
+img=$2; cfg=$3
+if [[ ! -d "$bak" ]]; then                      # original state, once
+    mkdir -m 700 "$bak"
+    cp -a /etc/plasmalogin.conf "$bak/"
+    [[ -d "$home/.config" ]] && cp -a "$home/.config" "$bak/config"
+fi
+as -d -m 755 "$home/wallpapers" "$home/.config" "$home/.config/fontconfig"
+rm -f "$home/wallpapers/chromatia".*
+target="$home/wallpapers/chromatia.${img##*.}"
+as -m 644 "$img" "$target"
+for f in $FILES; do
+    if [[ -f "$cfg/$f" ]]; then as -m 644 "$cfg/$f" "$home/.config/$f"; else rm -f "$home/.config/$f"; fi
+done
+rm -rf "$home/.cache"                           # the greeter caches colors, see KDE's own helper
+kwriteconfig6 --file /etc/plasmalogin.conf --group Greeter --key WallpaperPlugin org.kde.image
+kwriteconfig6 --file /etc/plasmalogin.conf --group Greeter --group Wallpaper --group org.kde.image --group General --key Image "file://$target"
+chmod 644 /etc/plasmalogin.conf
+echo "Login screen updated – log out to see it."

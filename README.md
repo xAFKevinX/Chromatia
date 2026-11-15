@@ -27,6 +27,8 @@ https://github.com/user-attachments/assets/17dc0145-0b8f-4d3d-8fab-c6801b7a00a2
 - **Notifications** – slide out of the frame at the top right; a glowing pill in the notch shows what you haven't read yet.
 - **Wallpaper gallery** – slides out of the left screen edge; click a picture or video to set it on all screens.
 - **Big desktop clock** in the accent color.
+- **Lock screen** – big clock on your wallpaper (videos too), round password field, media island, and sleep/restart/shut down pills. Unlocking is KDE's own code.
+- **Login screen** – `chromatia-login` gives Plasma's login screen your wallpaper and colors.
 - **Window snapping (optional, KZones)** – grab a window and a small layout picker slides in at the top (halves, big-left, quarters, thirds).
 - **Edge link** – windows that sit edge to edge resize together.
 
@@ -92,7 +94,8 @@ It installs the widgets, the wallpaper plugin, the window script, two small help
 1. **replacing the panels on your primary screen** with the Chromatia layout – answer **Y** for the full look (a backup of your current panels is saved to `~/.local/share/chromatia/backup-*`),
 2. **setting up KZones** (only asked if KZones is installed),
 3. **enabling the Magic Lamp animation** – windows minimize into their dock icon,
-4. **enabling the bottom-left hot corner** for the application launcher.
+4. **using the Chromatia lock screen** – active after your next login,
+5. **enabling the bottom-left hot corner** for the application launcher.
 
 Plasma restarts once at the end – your screen flickers briefly, that's normal.
 
@@ -136,6 +139,17 @@ SystemAccent=true
 
 The wallpaper folder can be changed in the settings of the wallpaper gallery widget.
 
+### Lock screen & login screen
+
+- **Lock screen** (Meta+L, after sleep): switched on by the installer. It only changes how the lock screen
+  looks: KWin starts the lock screen with Chromatia's `chromatia.desktop` package
+  (`~/.config/systemd/user/plasma-kwin_wayland.service.d/chromatia-lockscreen.conf`), your desktop is not touched.
+  Wallpaper and accent color follow the desktop automatically. To switch it off, delete that file and log in again.
+- **Login screen** (Plasma Login Manager, Plasma 6.6+): its layout is built into KDE and can't be themed, but
+  `chromatia-login` gives it your current wallpaper (a still frame for videos), colors, fonts and screen setup.
+  It needs your password, so it doesn't run by itself: run it again after changing the wallpaper if you like.
+  `chromatia-login --restore` brings back the state from before. SDDM is not supported.
+
 ## Troubleshooting
 
 - **Black screen with only the clock after installing** (versions before November 12, 2026, on accounts without a wallpaper set): your panels are fine, Plasma was waiting for the wallpaper. Press **Ctrl+Alt+T** to open a terminal and run
@@ -150,6 +164,8 @@ The wallpaper folder can be changed in the settings of the wallpaper gallery wid
 - **Colors don't change** – check the service: `systemctl --user status chromatia-sync.path`, run `chromatia-sync` once by hand and look at its output.
 - **An Electron app crashes when the accent changes** – that comes from KDE's GTK settings sync (kded module *gtkconfig*). Disable it or set `SystemAccent=false`.
 - **Video wallpaper stays black** – make sure the Qt Multimedia FFmpeg backend is installed.
+- **Still KDE's lock screen** – the Chromatia lock screen starts with your next login. Log out and back in once.
+- **Stuck on the lock screen** (should not happen; if the Chromatia lock screen fails to load, KDE's built-in one takes over): press **Ctrl+Alt+F3**, log in and run `loginctl unlock-session`, then **Ctrl+Alt+F2** (or F1) to go back.
 - **Changed QML doesn't show up** – restart Plasma: `systemctl --user restart plasma-plasmashell`.
 
 ## Issues & requests
@@ -174,8 +190,9 @@ I look at them when I find the time, but I can't promise to fix or build everyth
 - Inspired by [Caelestia](https://github.com/caelestia-dots/shell) – Chromatia rebuilds a similar look with stock Plasma parts.
 - Panel styling with [Panel Colorizer](https://github.com/luisbocanegra/plasma-panel-colorizer) by luisbocanegra.
 - Window snapping with [KZones](https://github.com/gerritdevriese/kzones) by gerritdevriese (GPL-3.0). `kwin/kzones/chromatia-kzones.patch` is a small modification of it and is licensed under GPL-3.0 as well.
+- Lock screen: the unlock logic in `lockscreen/` comes from [KDE Plasma](https://invent.kde.org/plasma/plasma-desktop) (GPL-2.0-or-later), so that folder is licensed under GPL-2.0-or-later as well.
 - Playing cat animation: ["Cat playing animation" by Abdul Latif on LottieFiles](https://lottiefiles.com/free-animation/cat-playing-animation-1cwXJbHzz7), [Lottie Simple License](https://help.lottiefiles.com/animation-licensing-basics-).
 
 ## License
 
-MIT – see [LICENSE](LICENSE). Exceptions: the KZones patch (GPL-3.0) and the cat animation (Lottie Simple License), see Credits.
+MIT – see [LICENSE](LICENSE). Exceptions: the KZones patch (GPL-3.0), the lock screen in `lockscreen/` (GPL-2.0-or-later) and the cat animation (Lottie Simple License), see Credits.

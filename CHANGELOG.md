@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.0
+- **Lock screen in the Chromatia look**: big clock, your wallpaper with the frame (videos play too, muted, and pause after 3 minutes without input), the accent color and a media island with the wavy progress. Move the mouse or press a key for the unlock card: avatar, round password field and pills for sleep, switch user, restart and shut down. Restart and shut down ask once more ("Shut down?") before they act. Unlocking itself is KDE's own code, unchanged.
+- The lock screen follows every wallpaper change automatically.
+- **Login screen** (Plasma Login Manager): run `chromatia-login` to give it your current wallpaper, colors and fonts. It asks for your password, `chromatia-login --restore` goes back.
+- Already on Chromatia? Run `./install.sh` once and answer **Y** at "Use the Chromatia lock screen?" (you can answer N to everything else), then log out and back in.
+
 ## 1.6.1
 - **Fix: notifications from Flatpak apps** (e.g. Vesktop/Discord) could leave an empty box at the top right after they disappeared. Their close and action buttons didn't work either.
 - Popups now also slide out when the app withdraws its notification, e.g. when you answer a call.

@@ -52,6 +52,8 @@ say "Installing widgets"
 for d in plasmoids/*/; do pkg Plasma/Applet "${d%/}"; done
 say "Installing wallpaper plugin"
 pkg Plasma/Wallpaper wallpaper/chromatia.wallpaper
+say "Installing the lock screen"
+pkg Plasma/Shell lockscreen/chromatia.desktop
 say "Installing KWin scripts"
 for k in kwin/chromatia-*/; do pkg KWin/Script "${k%/}"; done
 [[ $UPDATE == 0 ]] && kwriteconfig6 --file kwinrc --group Plugins --key chromatia-edgelinkEnabled true   # keep the user's choice on updates
@@ -59,7 +61,7 @@ for k in kwin/chromatia-*/; do pkg KWin/Script "${k%/}"; done
 # ---------------------------------------------------------------- helpers + services
 say "Installing helper scripts and services"
 mkdir -p "$BIN" "$DATA" "$HOME/.local/share/dbus-1/services" "$HOME/.config/systemd/user" "$HOME/.config/chromatia"
-install -m 755 bin/chromatia-sync bin/chromatia-visualizer bin/chromatia-update "$BIN/"
+install -m 755 bin/chromatia-sync bin/chromatia-visualizer bin/chromatia-update bin/chromatia-login "$BIN/"
 sed "s|@BINDIR@|$BIN|" dbus/io.github.chromatia.Visualizer.service > "$HOME/.local/share/dbus-1/services/io.github.chromatia.Visualizer.service"
 install -m 644 systemd/chromatia-sync.service systemd/chromatia-sync.path "$HOME/.config/systemd/user/"
 install -m 644 layout/blank.svg "$DATA/blank.svg"
@@ -139,6 +141,20 @@ echo
 if ask "Windows minimize into the dock with the Magic Lamp animation?"; then
     kwriteconfig6 --file kwinrc --group Plugins --key magiclampEnabled true
     kwriteconfig6 --file kwinrc --group Plugins --key squashEnabled false
+fi
+
+# ---------------------------------------------------------------- lock screen
+echo
+say "Lock screen"
+echo "   Chromatia look for the lock screen: big clock, your wallpaper (videos too) and the"
+echo "   accent color. Only the lock screen changes, unlocking works exactly like in KDE."
+echo "   Takes effect after your next login."
+LOCK_DROPIN="$HOME/.config/systemd/user/plasma-kwin_wayland.service.d/chromatia-lockscreen.conf"
+if ask "Use the Chromatia lock screen?"; then
+    mkdir -p "$(dirname "$LOCK_DROPIN")"
+    install -m 644 systemd/chromatia-lockscreen.conf "$LOCK_DROPIN"
+    systemctl --user daemon-reload
+    "$BIN/chromatia-sync" --lockscreen >/dev/null 2>&1 || true
 fi
 
 # ---------------------------------------------------------------- hot corner

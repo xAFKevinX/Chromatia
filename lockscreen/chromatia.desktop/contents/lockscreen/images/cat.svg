@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 120">
+  <!-- Kawaii-Katze: Kopf mit Ohren, großen Augen, Bäckchen, ω-Mund, Pfötchen -->
+  <g stroke="#3a2440" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M28 52 L22 12 L56 32 Z" fill="#ead7ef"/>
+    <path d="M112 52 L118 12 L84 32 Z" fill="#ead7ef"/>
+    <path d="M30 40 L27 22 L45 33 Z" fill="#f4b6cf" stroke="none"/>
+    <path d="M110 40 L113 22 L95 33 Z" fill="#f4b6cf" stroke="none"/>
+    <ellipse cx="70" cy="66" rx="52" ry="42" fill="#ead7ef"/>
+    <ellipse cx="38" cy="108" rx="13" ry="8" fill="#ead7ef"/>
+    <ellipse cx="102" cy="108" rx="13" ry="8" fill="#ead7ef"/>
+  </g>
+  <ellipse cx="50" cy="64" rx="8" ry="10" fill="#3a2440"/>
+  <ellipse cx="90" cy="64" rx="8" ry="10" fill="#3a2440"/>
+  <circle cx="53" cy="60" r="3" fill="#ffffff"/>
+  <circle cx="93" cy="60" r="3" fill="#ffffff"/>
+  <ellipse cx="36" cy="80" rx="8" ry="5" fill="#f4b6cf" opacity="0.9"/>
+  <ellipse cx="104" cy="80" rx="8" ry="5" fill="#f4b6cf" opacity="0.9"/>
+  <path d="M62 78 Q66 84 70 78 Q74 84 78 78" fill="none" stroke="#3a2440" stroke-width="3" stroke-linecap="round"/>
+  <g stroke="#3a2440" stroke-width="2.5" stroke-linecap="round">
+    <path d="M18 70 L2 66"/><path d="M18 76 L3 79"/>
+    <path d="M122 70 L138 66"/><path d="M122 76 L137 79"/>
+  </g>
+</svg>
