@@ -20,8 +20,9 @@ https://github.com/user-attachments/assets/17dc0145-0b8f-4d3d-8fab-c6801b7a00a2
 - **Frame around the desktop** – rounded inner corners, colored like the bar, drawn over images and videos.
 - **Video wallpapers** – muted, looping, paused automatically while a window is maximized or fullscreen on that screen, while windows side by side fill it, or while the screen is locked (all can be switched off). Power-friendly: 60 fps videos play as a 30 fps copy, side screens can show a still frame, and on NVIDIA the CPU decodes them (the card stays in its power-saving state). Switching wallpapers freezes the old video, recolors everything, then crossfades — no visible stutter.
 - **Audio visualizer** – bars along the bottom of the wallpaper while music plays (needs `cava`).
-- **Island bar** – workspaces | dock | tray, clock and a kawaii *show desktop* dog.
+- **Island bar** – workspaces | app folders | dock | tray, clock and a kawaii *show desktop* dog.
 - **Dock** – apps grouped, live window previews (also for minimized windows), magic-lamp minimize target, pin/unpin, middle-click for a new window.
+- **App folders** – like folders on an Android home screen, each with its own icon: click one and it grows out of the bar like the notch, it closes by itself when the mouse leaves. Add apps with the `+` (search) or drag apps, folders and files from the launcher, Dolphin or the desktop onto a folder.
 - **Workspace pills** – numbered pills with a live preview of each desktop, `+` to add, right-click to remove, scroll to switch.
 - **Dashboard** – slides down from the top edge: clock, calendar, media player with a round visualizer, squiggly progress bar and a playing cat, sleep inhibitor, CPU/GPU/RAM/VRAM, an audio mixer (now playing, devices and per-app volume, with wavy sliders), system rings, notes and all your notifications.
 - **Notifications** – slide out of the frame at the top right; a glowing pill in the notch shows what you haven't read yet.
@@ -121,8 +122,10 @@ git pull
 | Left edge, middle | wallpaper gallery |
 | Top edge, middle | dashboard (tabs: Dashboard · Audio · System · Notes · Notifications) |
 | Wi-Fi / Bluetooth buttons (dashboard, top right) | switch on or off (hide them in Chromatia Settings → Dashboard) |
+| Island backgrounds | on or off in Chromatia Settings → Bar |
 | Grid button (bar, far left) | application launcher (hide it in Chromatia Settings → Bar) |
 | Bottom left pills | click: switch · `+`: new desktop · right-click: remove · scroll: switch · hover: preview |
+| App folders (bar, between pills and dock) | click: open · drop an app on it: add · right-click: change icon, new folder, delete · in the folder: click the icon or name to change it, `+` (top right) to add, hover an app for × to remove |
 | Dock | click: activate / minimize / cycle windows · middle-click: new window · right-click: pin, close |
 | Dog button | minimize all windows · click again: bring exactly those back |
 | Drag a window | layout picker at the top (with KZones) |

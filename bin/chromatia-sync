@@ -401,12 +401,12 @@ def write_vscode(rgb):
     os.replace(path + ".tmp", path)
 
 
-def colors_script(acc, wall="", launcher=True):
+def colors_script(acc, wall="", launcher=True, islands=True):
     """Plasma script: write the colors into all Chromatia widgets, Panel Colorizer and the
     wallpaper plugin. Only writes what changed (otherwise the path unit would loop)."""
     h = hue(acc)
     cols = {"panelBg": hexc(tone(h, 0.25, 0.075)), "widgetBg": hexc(tone(h, 0.20, 0.17)), "fg": hexc(tone(h, 0.55, 0.85))}
-    return ("var ACC=%s, C=%s, WALL=%s, LB=%s, n=0;" % (json.dumps(hexc(acc)), json.dumps(cols), json.dumps(wall), json.dumps(launcher)) + """
+    return ("var ACC=%s, C=%s, WALL=%s, LB=%s, ISL=%s, n=0;" % (json.dumps(hexc(acc)), json.dumps(cols), json.dumps(wall), json.dumps(launcher), json.dumps(islands)) + """
 function setc(o, hex){ if(!o) return; o.enabled=true; o.sourceType=0; o.custom=hex; o.alpha=1;
   o.lightnessEnabled=false; o.saturationEnabled=false; }
 panels().forEach(function(p){ p.widgets().forEach(function(w){
@@ -419,7 +419,8 @@ panels().forEach(function(p){ p.widgets().forEach(function(w){
     var g; try { g=JSON.parse(w.readConfig("globalSettings")); } catch(e) { return; }
     var before=JSON.stringify(g);
     setc(g.panel.normal.backgroundColor, C.panelBg);
-    if (g.widgets.normal.enabled) setc(g.widgets.normal.backgroundColor, C.widgetBg);
+    if (g.widgets.normal.enabled) { setc(g.widgets.normal.backgroundColor, C.widgetBg);
+      if (String(w.readConfig("islandsEnabled"))=="true") g.widgets.normal.backgroundColor.enabled=ISL; }   // the bar's islands
     setc(g.widgets.normal.foregroundColor, C.fg);
     if (g.trayWidgets && g.trayWidgets.normal) setc(g.trayWidgets.normal.foregroundColor, C.fg);
     var after=JSON.stringify(g);
@@ -538,7 +539,8 @@ def fingerprint(walls):
     d = dashboard_settings()
     extra = [d.get(k, "") for k in ("accentMode", "fixedAccent", "systemAccent", "appColors", "chromatiaPopups",
                                          "pauseWhenCovered", "pauseWhenTiled", "pauseWhenLocked", "videoLite",
-                                         "videoMainOnly", "launcherButton")]
+                                         "videoMainOnly", "launcherButton", "islands")]
+    extra.append(open(APPLETSRC).read().count("plugin=chromatia."))   # a newly added widget gets its colors at once
     return json.dumps([sorted((str(k), v[2], v[1] or "") for k, v in walls.items()), extra])
 
 
@@ -632,7 +634,7 @@ def main(force=False):
         f'var d=desktopById({cid});d.currentConfigGroup=["Wallpaper","{OWN}","General"];'
         f'd.writeConfig("SwitchGo",{json.dumps(vals["Image"])});'
         for cid, vals in own.items())
-    out = plasma_eval(colors_script(acc, framed.get(0, ""), enabled("launcherButton")) + go)
+    out = plasma_eval(colors_script(acc, framed.get(0, ""), enabled("launcherButton"), enabled("islands")) + go)
     if out:
         log(out)
     # remember what we just wrote (our own writes trigger the path unit again)

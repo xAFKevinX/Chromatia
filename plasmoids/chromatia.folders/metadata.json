@@ -1,0 +1,22 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "xAFKevinX"
+            }
+        ],
+        "Category": "Application Launchers",
+        "Description": "App folders in the bar that grow out like the dashboard notch",
+        "Icon": "folder-applications",
+        "Id": "chromatia.folders",
+        "License": "MIT",
+        "Name": "Chromatia Folders",
+        "Version": "1.0",
+        "FormFactors": [
+            "panel"
+        ],
+        "Website": "https://github.com/xAFKevinX/Chromatia"
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

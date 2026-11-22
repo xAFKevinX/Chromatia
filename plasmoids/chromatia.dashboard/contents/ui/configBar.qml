@@ -9,6 +9,12 @@ ConfigPage {
 
     Kirigami.FormLayout {
         QQC2.CheckBox {
+            Kirigami.FormData.label: "Islands:"
+            text: "Lighter background behind the groups in the bar"
+            checked: page.cfg_islands
+            onToggled: page.cfg_islands = checked
+        }
+        QQC2.CheckBox {
             Kirigami.FormData.label: "Launcher button:"
             text: "Show a button for the app launcher at the left end of the bar"
             checked: page.cfg_launcherButton

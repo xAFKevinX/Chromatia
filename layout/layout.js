@@ -1,6 +1,6 @@
 // Chromatia panel layout – run by install.sh through Plasma's scripting interface.
 // Replaces all panels on the primary screen with the Chromatia layout:
-//   bottom: island bar (workspaces | dock | net speed, tray, show-desktop, clock)
+//   bottom: island bar (workspaces | folders | dock | net speed, tray, show-desktop, clock)
 //   top:    thin frame panel with the dashboard (and an invisible launcher for the hot corner)
 //   left:   thin frame panel with the wallpaper gallery
 //   right:  thin frame panel
@@ -42,7 +42,11 @@ bar.floating = false; bar.hiding = "none"; bar.opacity = "translucent";
 bar.addWidget("chromatia.workspaces");
 colorize(bar, BAR_COLORIZER, true);
 bar.addWidget("org.kde.plasma.panelspacer");
+bar.addWidget("chromatia.folders");
+bar.addWidget("org.kde.plasma.panelspacer");
 bar.addWidget("chromatia.dock");
+// two spacers on the right balance the two left of the dock, so it stays (almost) centered
+bar.addWidget("org.kde.plasma.panelspacer");
 bar.addWidget("org.kde.plasma.panelspacer");
 if (has("org.kde.netspeedWidget")) {
     var ns = bar.addWidget("org.kde.netspeedWidget");

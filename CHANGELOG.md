@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.8.0
+- **App folders in the bar**, like folders on an Android home screen. Click one and it grows out of the bar like the dashboard notch. It closes by itself 2.5 seconds after the mouse leaves it.
+  - Every folder can have its own icon (a controller for games, for example): click the icon in the open folder, or right-click the folder → *Change icon…*.
+  - Add apps with the small `+` at the top right (search over all installed apps, Steam games included), or drag apps, folders and files from the launcher, Dolphin or the desktop onto a folder. Folders keep the icon you gave them in Dolphin.
+  - Click the folder name to rename it, hover an app for × to remove it, right-click a folder for a new folder or to delete it.
+  - Already on Chromatia? The update installs the widget, but doesn't touch your bar: right-click the bar → *Add Widgets…* → **Chromatia Folders**, then put it between two spacers so it gets its own island.
+- **Islands can be switched off**: Chromatia Settings → Bar → *Islands* removes the lighter background behind the groups in the bar.
+- **Fix**: a Chromatia widget added later only got the wallpaper colors after the next wallpaper change. Now it gets them right away.
+
 ## 1.7.2
 - **Lock screen with two or more screens**: the password field now always starts on your primary screen and takes the keyboard there, so you can just start typing. Before, it often landed on a side screen (KDE picks the screen under the mouse, which Wayland often doesn't report) and typing did nothing until you clicked. Moving the mouse to another screen still moves the password field there.
 - **Fix: the dashboard sometimes didn't close** after you had clicked into the notes once. It now keeps checking while it is open and closes as soon as the mouse is gone.

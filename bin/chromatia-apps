@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""Installed applications as JSON for the Chromatia folders: [{"file", "name", "icon"}].
+Without arguments: every app the launcher shows. With paths or file:// / desktop:/ URLs: just those
+(apps, folders or files dropped onto a folder)."""
+import configparser, json, mimetypes, os, subprocess, sys
+from urllib.parse import unquote
+
+lang = (os.environ.get("LANGUAGE") or os.environ.get("LC_MESSAGES") or os.environ.get("LANG") or "").split(":")[0].split(".")[0]
+
+
+def entry(path, filtered):
+    p = configparser.RawConfigParser(strict=False, interpolation=None)
+    p.optionxform = str
+    try:
+        p.read(path, encoding="utf-8")
+        e = p["Desktop Entry"]
+    except Exception:
+        return None
+    if filtered and (e.get("Type") != "Application" or "true" in (e.get("NoDisplay"), e.get("Hidden"))
+                     or "KDE" in e.get("NotShowIn", "").split(";")
+                     or ("OnlyShowIn" in e and "KDE" not in e["OnlyShowIn"].split(";"))):
+        return None
+    name = e.get(f"Name[{lang}]") or e.get(f"Name[{lang.split('_')[0]}]") or e.get("Name")
+    return name and {"file": path, "name": name, "icon": e.get("Icon", "application-x-executable")}
+
+
+def item(arg):
+    if arg.startswith("desktop:/"):
+        desk = subprocess.run(["xdg-user-dir", "DESKTOP"], capture_output=True, text=True).stdout.strip()
+        arg = os.path.join(desk or os.path.expanduser("~/Desktop"), unquote(arg[9:]).lstrip("/"))
+    elif arg.startswith("file://"):
+        arg = unquote(arg[7:])
+    if arg.endswith(".desktop"):
+        return entry(arg, False)
+    if not os.path.exists(arg):
+        return None
+    mime = "inode/directory" if os.path.isdir(arg) else (mimetypes.guess_type(arg)[0] or "text/plain")
+    icon = mime.replace("/", "-")
+    if os.path.isdir(arg):   # a folder keeps the icon given in Dolphin (stored in its .directory file)
+        p = configparser.RawConfigParser(strict=False, interpolation=None)
+        try:
+            p.read(os.path.join(arg, ".directory"), encoding="utf-8")
+        except Exception:
+            pass
+        icon = p.get("Desktop Entry", "Icon", fallback="folder")
+    return {"file": arg, "name": os.path.basename(arg.rstrip("/")) or arg, "icon": icon}
+
+
+if sys.argv[1:]:
+    apps = [a for a in (item(f) for f in sys.argv[1:]) if a]
+else:
+    seen, apps = set(), []
+    data = [os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share")]
+    for base in data + (os.environ.get("XDG_DATA_DIRS") or "/usr/local/share:/usr/share").split(":"):
+        root = os.path.join(base, "applications")
+        for dirpath, _, files in os.walk(root):
+            for f in files:
+                path = os.path.join(dirpath, f)
+                did = os.path.relpath(path, root).replace("/", "-")   # desktop file ID: the first one wins
+                if f.endswith(".desktop") and did not in seen:
+                    seen.add(did)
+                    a = entry(path, True)
+                    if a:
+                        apps.append(a)
+    apps.sort(key=lambda a: a["name"].lower())
+print(json.dumps(apps, ensure_ascii=False))

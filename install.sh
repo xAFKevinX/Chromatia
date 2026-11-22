@@ -61,7 +61,7 @@ for k in kwin/chromatia-*/; do pkg KWin/Script "${k%/}"; done
 # ---------------------------------------------------------------- helpers + services
 say "Installing helper scripts and services"
 mkdir -p "$BIN" "$DATA" "$HOME/.local/share/dbus-1/services" "$HOME/.config/systemd/user" "$HOME/.config/chromatia"
-install -m 755 bin/chromatia-sync bin/chromatia-visualizer bin/chromatia-update bin/chromatia-login "$BIN/"
+install -m 755 bin/chromatia-sync bin/chromatia-visualizer bin/chromatia-update bin/chromatia-login bin/chromatia-apps "$BIN/"
 sed "s|@BINDIR@|$BIN|" dbus/io.github.chromatia.Visualizer.service > "$HOME/.local/share/dbus-1/services/io.github.chromatia.Visualizer.service"
 install -m 644 systemd/chromatia-sync.service systemd/chromatia-sync.path "$HOME/.config/systemd/user/"
 install -m 644 layout/blank.svg "$DATA/blank.svg"

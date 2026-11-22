@@ -9,6 +9,7 @@ KCM.SimpleKCM {
     property bool cfg_waveMedia; property bool cfg_waveMediaDefault
     property bool cfg_waveVolume; property bool cfg_waveVolumeDefault
     property bool cfg_launcherButton; property bool cfg_launcherButtonDefault
+    property bool cfg_islands; property bool cfg_islandsDefault
     property bool cfg_wifiToggle; property bool cfg_wifiToggleDefault
     property bool cfg_bluetoothToggle; property bool cfg_bluetoothToggleDefault
     property string cfg_aliases; property string cfg_aliasesDefault
