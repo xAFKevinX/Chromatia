@@ -165,6 +165,21 @@ PlasmoidItem {
         sortOrder: Qt.DescendingOrder
     }
     NotificationManager.Settings { id: notifSettings; live: true }
+    // muted notifications (bell on a card, undo in Settings → Notifications): [{app, summary}], summary "" = whole app
+    readonly property var muted: { try { return JSON.parse(Plasmoid.configuration.muted || "[]"); } catch (e) { return []; } }
+    function isMuted(app, summary) { return muted.some(m => m.app === app && (m.summary === "" || m.summary === summary)); }
+    function mute(app, summary) {
+        Plasmoid.configuration.muted = JSON.stringify(muted.concat([{ app: app, summary: summary }]));
+        Qt.callLater(sweepMuted);
+    }
+    function sweepMuted() {          // closes muted notifications (popups skip them on their own)
+        const R = NotificationManager.Notifications;
+        for (let i = notifHistory.count - 1; i >= 0; i--) {
+            const ix = notifHistory.index(i, 0);
+            if (isMuted(notifHistory.data(ix, R.ApplicationNameRole) || "", notifHistory.data(ix, R.SummaryRole) || "")) notifHistory.close(ix);
+        }
+    }
+    Connections { target: notifHistory; function onRowsInserted() { Qt.callLater(root.sweepMuted); } }
     function toggleDnd() {
         if (NotificationManager.Server.inhibited) {
             notifSettings.notificationsInhibitedUntil = undefined;
@@ -278,6 +293,7 @@ PlasmoidItem {
 
         function open() {
             closeTimer.stop();
+            backToDash.stop();
             if (!drawer.visible && Plasmoid.configuration.openNotificationsFirst && notifHistory.unreadNotificationsCount > 0) root.tab = 4;   // optional: unread first
             drawer.visible = true;
             anim.stop();
@@ -299,7 +315,14 @@ PlasmoidItem {
             id: anim
             target: root
             property: "reveal"
-            onFinished: if (root.reveal <= 0.001) drawer.visible = false
+            onFinished: if (root.reveal <= 0.001) { drawer.visible = false; backToDash.restart(); }
+        }
+
+        // closed on another tab: back to the dashboard after 10 s (Notes: 2 min)
+        Timer {
+            id: backToDash
+            interval: root.tab === 3 ? 120000 : 10000
+            onTriggered: { root.tab = 0; Plasmoid.configuration.lastTab = 0; }
         }
 
         Timer {

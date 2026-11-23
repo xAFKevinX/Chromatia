@@ -21,6 +21,7 @@ KCM.SimpleKCM {
     property bool cfg_chromatiaPopups; property bool cfg_chromatiaPopupsDefault
     property int cfg_popupSeconds; property int cfg_popupSecondsDefault
     property bool cfg_hideInFullscreen; property bool cfg_hideInFullscreenDefault
+    property string cfg_muted; property string cfg_mutedDefault
     property bool cfg_openNotificationsFirst; property bool cfg_openNotificationsFirstDefault
     property bool cfg_pauseWhenCovered; property bool cfg_pauseWhenCoveredDefault
     property bool cfg_pauseWhenTiled; property bool cfg_pauseWhenTiledDefault

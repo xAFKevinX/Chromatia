@@ -84,10 +84,14 @@ Rectangle {
                 Layout.fillWidth: true
             }
             Text {
+                visible: !card.hovered
                 text: card.ago(card.created)
                 color: card.dash.cDim
                 font.pixelSize: 11
             }
+            // on hover, instead of the time: mute this kind / the whole app
+            Pill { small: true; accent: card.dash.accent; visible: card.hovered && card.summary !== ""; text: "Mute this kind"; onClicked: card.dash.mute(card.appName, card.summary) }
+            Pill { small: true; accent: card.dash.accent; visible: card.hovered; text: "Mute " + (card.appName || "app"); onClicked: card.dash.mute(card.appName, "") }
             // close
             Rectangle {
                 Layout.preferredWidth: 20
@@ -132,18 +136,30 @@ Rectangle {
             Layout.topMargin: 2
             Repeater {
                 model: card.actionNames.length
-                Rectangle {
-                    readonly property string actionId: card.actionNames[index]
-                    visible: actionId !== "default"
-                    width: lbl.implicitWidth + 22
-                    height: 26
-                    radius: 13
-                    color: aHover.hovered ? card.dash.accent : Qt.alpha(card.dash.accent, 0.35)
-                    Text { id: lbl; anchors.centerIn: parent; text: card.actionLabels[index] || ""; color: "white"; font.pixelSize: 12 }
-                    HoverHandler { id: aHover }
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { card.nmodel.invokeAction(card.idx(), parent.actionId); card.actionTriggered(); } }
+                Pill {
+                    required property int index
+                    visible: card.actionNames[index] !== "default"
+                    accent: card.dash.accent
+                    text: card.actionLabels[index] || ""
+                    onClicked: { card.nmodel.invokeAction(card.idx(), card.actionNames[index]); card.actionTriggered(); }
                 }
             }
         }
+    }
+
+    component Pill: Rectangle {
+        property alias text: lbl.text
+        signal clicked()
+        property bool small: false       // header size, next to the ×
+        implicitWidth: lbl.implicitWidth + (small ? 16 : 22)
+        implicitHeight: small ? 20 : 26
+        width: implicitWidth
+        height: implicitHeight
+        radius: height / 2
+        required property color accent
+        color: pHover.hovered ? accent : Qt.alpha(accent, 0.35)
+        Text { id: lbl; anchors.centerIn: parent; color: "white"; font.pixelSize: parent.small ? 11 : 12 }
+        HoverHandler { id: pHover }
+        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: parent.clicked() }
     }
 }

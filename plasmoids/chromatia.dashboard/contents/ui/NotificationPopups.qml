@@ -45,6 +45,7 @@ PlasmaCore.Dialog {
     function addRow(i) {
         const R = NotificationManager.Notifications;
         if (role(i, R.TypeRole) !== R.NotificationType) return;
+        if (dash.isMuted(role(i, R.ApplicationNameRole) || "", role(i, R.SummaryRole) || "")) return;
         const nid = role(i, R.IdRole);
         for (let k = 0; k < shown.count; k++) if (shown.get(k).nid === nid) return;
         const created = role(i, R.CreatedRole);

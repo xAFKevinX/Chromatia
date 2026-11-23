@@ -25,7 +25,7 @@ https://github.com/user-attachments/assets/d1336b5d-29f8-4575-817c-964fe9f81480
 - **App folders** – like folders on an Android home screen, each with its own icon: click one and it grows out of the bar like the notch, it closes by itself when the mouse leaves. Add apps with the `+` (search) or drag apps, folders and files from the launcher, Dolphin or the desktop onto a folder.
 - **Workspace pills** – numbered pills with a live preview of each desktop, `+` to add, right-click to remove, scroll to switch.
 - **Dashboard** – slides down from the top edge: clock, calendar, media player with a round visualizer, squiggly progress bar and a playing cat, sleep inhibitor, CPU/GPU/RAM/VRAM, an audio mixer (now playing, devices and per-app volume, with wavy sliders), system rings, notes and all your notifications.
-- **Notifications** – slide out of the frame at the top right; a glowing pill in the notch shows what you haven't read yet.
+- **Notifications** – slide out of the frame at the top right; a glowing pill in the notch shows what you haven't read yet. Hover one to mute that kind of notification or the whole app with one click.
 - **Wallpaper gallery** – slides out of the left screen edge; click a picture or video to set it on all screens.
 - **Big desktop clock** in the accent color.
 - **Lock screen** – big clock on your wallpaper (videos too), round password field, media island, and sleep/restart/shut down pills. Unlocking is KDE's own code.

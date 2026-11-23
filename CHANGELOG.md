@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.9.0
+- **Mute notifications with one click**: hover a notification (in the dashboard or a popup) and two buttons appear next to the ×.
+  - *Mute this kind* stops notifications from that app with the same title, e.g. only Discord's missed calls. Everything else from the app still comes through.
+  - *Mute <app>* stops all notifications from that app.
+  - Matching notifications that are already there disappear right away. Undo it in Chromatia Settings → Notifications → *Muted*.
+- **The dashboard goes back to its first tab**: closed on another tab, it shows the Dashboard tab again after 10 seconds. Notes stay open for 2 minutes. Open it again before that and you are where you left off.
+
 ## 1.8.0
 - **App folders in the bar**, like folders on an Android home screen. Click one and it grows out of the bar like the dashboard notch. It closes by itself 2.5 seconds after the mouse leaves it.
   - Every folder can have its own icon (a controller for games, for example): click the icon in the open folder, or right-click the folder → *Change icon…*.

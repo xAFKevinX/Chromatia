@@ -6,6 +6,7 @@ import org.kde.kirigami as Kirigami
 
 ConfigPage {
     id: page
+    readonly property var mutedList: { try { return JSON.parse(cfg_muted || "[]"); } catch (e) { return []; } }
 
     Kirigami.FormLayout {
         QQC2.CheckBox {
@@ -36,6 +37,23 @@ ConfigPage {
             text: "Open the Notifications tab first when something is unread"
             checked: page.cfg_openNotificationsFirst
             onToggled: page.cfg_openNotificationsFirst = checked
+        }
+        ColumnLayout {
+            Kirigami.FormData.label: "Muted:"
+            QQC2.Label { visible: page.mutedList.length === 0; text: "Nothing. Use the bell on a notification in the dashboard."; opacity: 0.7 }
+            Repeater {
+                model: page.mutedList
+                RowLayout {
+                    required property var modelData
+                    required property int index
+                    QQC2.Label { text: modelData.app + (modelData.summary ? " – “" + modelData.summary + "”" : " (all)") }
+                    QQC2.Button {
+                        text: "Unmute"
+                        icon.name: "notifications-symbolic"
+                        onClicked: { const l = page.mutedList.slice(); l.splice(index, 1); page.cfg_muted = JSON.stringify(l); }
+                    }
+                }
+            }
         }
         QQC2.Label {
             Layout.maximumWidth: Kirigami.Units.gridUnit * 22
