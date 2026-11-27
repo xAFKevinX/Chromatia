@@ -35,7 +35,7 @@ https://github.com/user-attachments/assets/df318912-b51c-453b-b430-d8ca10d85a9d
 
 ## Requirements
 
-- KDE Plasma 6 on Wayland – **tested only on Fedora 44 with Plasma 6.8**. Other distributions may work, see [Issues & requests](#issues--requests)
+- KDE Plasma 6 on Wayland – **tested only on Fedora 44 and 45 with Plasma 6.8**. Other distributions may work, see [Issues & requests](#issues--requests)
 - A few packages (installed in step 1 below)
 - **[Panel Colorizer](https://github.com/luisbocanegra/plasma-panel-colorizer)** for the island bar and the frame panels (step 2)
 - Optional: **KZones** for window snapping, the **Network Speed** widget, **Mission Center** (opens from the dashboard)
@@ -173,7 +173,7 @@ The wallpaper folder can be changed in the settings of the wallpaper gallery wid
 
 ## Issues & requests
 
-Chromatia is a personal project that I share as it is. I test it only on my own setup: **Fedora 44, KDE Plasma 6.8, Wayland**. Other distributions and Plasma versions may work, but I don't test them and can't promise support.
+Chromatia is a personal project that I share as it is. I test it only on my own setup: **Fedora 44 and 45, KDE Plasma 6.8, Wayland**. Other distributions and Plasma versions may work, but I don't test them and can't promise support.
 
 Bug reports and ideas are welcome as [GitHub issues](https://github.com/xAFKevinX/Chromatia/issues). Please include:
 - your distribution and Plasma version (`plasmashell --version`)
